@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jeopardy SMP Interaktif</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Papan Game -->
+    <div id="game-board" class="board"></div>
+
+    <!-- Modal Pop-up untuk Soal -->
+    <div id="question-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2 id="modal-category">Kategori</h2>
+        <h1 id="modal-points">100</h1>
+        <p id="modal-question">Teks pertanyaan akan muncul di sini</p>
+
+        <!-- Tempat gambar jika ada -->
+        <img id="modal-image" src="" alt="Soal Gambar" class="hidden" />
+
+        <button id="btn-show-answer">Lihat Jawaban</button>
+        <p id="modal-answer" class="hidden">Kunci jawaban di sini</p>
+
+        <div class="controls">
+          <button id="btn-correct" class="btn-green">Benar (Suara)</button>
+          <button id="btn-wrong" class="btn-red">Salah (Suara)</button>
+          <button id="btn-close">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Papan Skor untuk 4 Kelompok -->
+    <div id="scoreboard" class="scoreboard">
+      <div class="team">
+        <h3>Kelompok 1</h3>
+        <span id="score-1">0</span>
+        <div class="score-btns">
+          <button onclick="updateScore(1, 100)">+100</button>
+          <button onclick="updateScore(1, -100)">-100</button>
+        </div>
+      </div>
+      <!-- Salin blok div class="team" di atas untuk Kelompok 2, 3, dan 4 -->
+    </div>
+
+    <!-- Audio Player (Sembunyi) -->
+    <audio id="audio-correct" src="assets/audio/benar.mp3"></audio>
+    <audio id="audio-wrong" src="assets/audio/salah.mp3"></audio>
+
+    <script src="script.js"></script>
+  </body>
+</html>
