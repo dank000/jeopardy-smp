@@ -1,52 +1,107 @@
+<!-- index.html -->
 <!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jeopardy SMP Interaktif</title>
+    <title>Jeopardy Interaktif</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Papan Game -->
-    <div id="game-board" class="board"></div>
+    <nav class="glass-nav">
+      <button onclick="navigate('home')">Beranda</button>
+      <button onclick="navigate('game')">Papan Game</button>
+      <button onclick="navigate('editor')">Editor Soal</button>
+      <button onclick="navigate('settings')">Pengaturan</button>
+    </nav>
 
-    <!-- Modal Pop-up untuk Soal -->
+    <!-- Halaman Beranda -->
+    <section id="home" class="screen active">
+      <div class="hero glass-panel">
+        <h1>Jeopardy Kuis Interaktif</h1>
+        <p>Platform belajar interaktif dan menyenangkan untuk siswa</p>
+        <div class="hero-btns">
+          <button class="btn-primary" onclick="navigate('game')">
+            Mulai Permainan
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Halaman Game -->
+    <section id="game" class="screen">
+      <div id="game-board" class="board"></div>
+      <div id="scoreboard" class="scoreboard"></div>
+    </section>
+
+    <!-- Halaman Editor -->
+    <section id="editor" class="screen">
+      <div class="glass-panel editor-container">
+        <h2>Editor Konten Game</h2>
+        <p>
+          Ubah kategori dan pertanyaan di sini. Data akan tersimpan otomatis di
+          browser.
+        </p>
+        <div id="editor-form"></div>
+        <button class="btn-primary" onclick="saveEditorData()">
+          Simpan Perubahan
+        </button>
+        <button class="btn-danger" onclick="resetData()">
+          Reset ke Default
+        </button>
+      </div>
+    </section>
+
+    <!-- Halaman Pengaturan -->
+    <section id="settings" class="screen">
+      <div class="glass-panel settings-container">
+        <h2>Pengaturan Permainan</h2>
+        <div class="form-group">
+          <label>Durasi Timer (detik):</label>
+          <input type="number" id="setting-timer" value="30" />
+        </div>
+        <div class="form-group">
+          <label>Jumlah Tim (2-4):</label>
+          <input type="number" id="setting-teams" min="2" max="4" value="4" />
+        </div>
+        <button class="btn-primary" onclick="saveSettings()">
+          Simpan Pengaturan
+        </button>
+        <button class="btn-danger" onclick="resetGameProgress()">
+          Reset Skor & Papan Game
+        </button>
+      </div>
+    </section>
+
+    <!-- Modal Pertanyaan -->
     <div id="question-modal" class="modal hidden">
-      <div class="modal-content">
-        <h2 id="modal-category">Kategori</h2>
-        <h1 id="modal-points">100</h1>
-        <p id="modal-question">Teks pertanyaan akan muncul di sini</p>
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h2 id="modal-category">Kategori</h2>
+          <h2 id="modal-points" class="points-badge">100</h2>
+        </div>
+        <div class="timer-bar"><div id="timer-progress"></div></div>
+        <h1 id="modal-question">Pertanyaan</h1>
+        <img id="modal-image" src="" alt="Visual" class="hidden" />
 
-        <!-- Tempat gambar jika ada -->
-        <img id="modal-image" src="" alt="Soal Gambar" class="hidden" />
+        <button id="btn-show-answer" class="btn-primary">Lihat Jawaban</button>
+        <h2 id="modal-answer" class="hidden answer-text">Jawaban</h2>
 
-        <button id="btn-show-answer">Lihat Jawaban</button>
-        <p id="modal-answer" class="hidden">Kunci jawaban di sini</p>
-
-        <div class="controls">
-          <button id="btn-correct" class="btn-green">Benar (Suara)</button>
-          <button id="btn-wrong" class="btn-red">Salah (Suara)</button>
-          <button id="btn-close">Tutup</button>
+        <div class="modal-controls">
+          <button id="btn-correct" class="btn-green">Jawaban Benar</button>
+          <button id="btn-wrong" class="btn-red">Jawaban Salah</button>
+          <button id="btn-close" class="btn-secondary">Tutup Modal</button>
         </div>
       </div>
     </div>
 
-    <!-- Papan Skor untuk 4 Kelompok -->
-    <div id="scoreboard" class="scoreboard">
-      <div class="team">
-        <h3>Kelompok 1</h3>
-        <span id="score-1">0</span>
-        <div class="score-btns">
-          <button onclick="updateScore(1, 100)">+100</button>
-          <button onclick="updateScore(1, -100)">-100</button>
-        </div>
-      </div>
-      <!-- Salin blok div class="team" di atas untuk Kelompok 2, 3, dan 4 -->
-    </div>
-
-    <!-- Audio Player (Sembunyi) -->
+    <!-- Elemen Audio tersembunyi, mengacu pada struktur folder[cite: 1] -->
     <audio id="audio-correct" src="assets/audio/benar.mp3"></audio>
     <audio id="audio-wrong" src="assets/audio/salah.mp3"></audio>
+
+    <footer>
+      <p>Dibuat oleh Guru SMPN 3 Gunungsindur | Game Interaktif 2026</p>
+    </footer>
 
     <script src="script.js"></script>
   </body>
