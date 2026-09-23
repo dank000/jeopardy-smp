@@ -1,4 +1,9 @@
-<!-- index.html -->
+<?php
+session_start();
+// Cek apakah admin sudah login
+$is_admin = isset($_SESSION['role']) && $_SESSION['role'] == 'admin';
+?>
+
 <!doctype html>
 <html lang="id">
   <head>
@@ -9,10 +14,17 @@
   </head>
   <body>
     <nav class="glass-nav">
-      <button onclick="navigate('home')">Beranda</button>
-      <button onclick="navigate('game')">Papan Game</button>
-      <button onclick="navigate('editor')">Editor Soal</button>
-      <button onclick="navigate('settings')">Pengaturan</button>
+        <button onclick="navigate('home')">Beranda</button>
+        <button onclick="navigate('game')">Papan Game</button>
+        
+        <!-- Logika PHP: Jika Admin, tampilkan Editor & Logout. Jika bukan, tampilkan Login -->
+        <?php if($is_admin): ?>
+            <button onclick="navigate('editor')">Editor Soal</button>
+            <button onclick="navigate('settings')">Pengaturan</button>
+            <button onclick="window.location.href='logout.php'" class="btn-danger">Logout</button>
+        <?php else: ?>
+            <button onclick="navigate('login')">Login Admin</button>
+        <?php endif; ?>
     </nav>
 
     <!-- Halaman Beranda -->
@@ -34,6 +46,21 @@
       <div id="scoreboard" class="scoreboard"></div>
     </section>
 
+    <!-- Halaman Login -->
+    <section id="login" class="screen">
+        <div class="glass-panel" style="max-width: 400px; margin: 50px auto; text-align: center;">
+            <h2 style="margin-bottom: 10px; color: var(--accent);">Login Admin</h2>
+            <p style="margin-bottom: 20px;">Silakan masuk untuk mengelola soal dan pengaturan.</p>
+            
+            <form action="proses_login.php" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="text" name="username" placeholder="Username" required style="padding: 12px; border-radius: 8px; border: none; background: #1e293b; color: white;">
+                <input type="password" name="password" placeholder="Password" required style="padding: 12px; border-radius: 8px; border: none; background: #1e293b; color: white;">
+                <button type="submit" class="btn-primary">Masuk</button>
+            </form>
+        </div>
+    </section>  
+
+    <?php if($is_admin): ?>
     <!-- Halaman Editor -->
     <section id="editor" class="screen">
       <div class="glass-panel editor-container">
@@ -72,6 +99,7 @@
         </button>
       </div>
     </section>
+    <?php endif; ?>
 
     <!-- Modal Pertanyaan -->
     <div id="question-modal" class="modal hidden">
