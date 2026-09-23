@@ -1,4 +1,3 @@
-// DATABASE SOAL MENTAH (9 Kategori)
 const databaseSoal = [
   {
     id: "agm",
@@ -281,162 +280,193 @@ const databaseSoal = [
   },
 ];
 
-// Data Avatar Haikyuu (URL Statis)
 const avatars = [
-  "https://i.pinimg.com/736x/84/c2/f7/84c2f7bfbe09d435133610de59600989.jpg", // Hinata
-  "https://i.pinimg.com/736x/77/8c/a0/778ca057ddde3db0098064beaa1d62c1.jpg", // Kageyama
-  "https://i.pinimg.com/736x/21/df/b8/21dfb85b4f0b2f5b4f3b5f096238381c.jpg", // Kuroo
-  "https://i.pinimg.com/736x/c9/a7/39/c9a739564f9b8417c8008894fb4ecb44.jpg", // Kenma
-  "https://i.pinimg.com/736x/7a/a6/f3/7aa6f380be5be4e35759ed6e5f848f07.jpg", // Bokuto
-  "https://i.pinimg.com/736x/6c/e0/b3/6ce0b3beaf8db5f5cc1149e29a997d9f.jpg", // Akaashi
-  "https://i.pinimg.com/736x/44/22/0c/44220c8f58c740702d8f9c0c822e0e49.jpg", // Oikawa
-  "https://i.pinimg.com/736x/c2/3b/b1/c23bb1d9715a3a79d033efb3438914b1.jpg", // Ushijima
-  "https://i.pinimg.com/736x/6a/d2/d5/6ad2d5e2e9c708170b1338d8f763eb5d.jpg", // Tsukishima
-  "https://i.pinimg.com/736x/d4/0b/df/d40bdf19de699c264e1d6c8b93557d34.jpg", // Nishinoya
+  "https://i.pinimg.com/736x/84/c2/f7/84c2f7bfbe09d435133610de59600989.jpg",
+  "https://i.pinimg.com/736x/77/8c/a0/778ca057ddde3db0098064beaa1d62c1.jpg",
+  "https://i.pinimg.com/736x/21/df/b8/21dfb85b4f0b2f5b4f3b5f096238381c.jpg",
+  "https://i.pinimg.com/736x/c9/a7/39/c9a739564f9b8417c8008894fb4ecb44.jpg",
+  "https://i.pinimg.com/736x/7a/a6/f3/7aa6f380be5be4e35759ed6e5f848f07.jpg",
+  "https://i.pinimg.com/736x/6c/e0/b3/6ce0b3beaf8db5f5cc1149e29a997d9f.jpg",
+  "https://i.pinimg.com/736x/44/22/0c/44220c8f58c740702d8f9c0c822e0e49.jpg",
+  "https://i.pinimg.com/736x/c2/3b/b1/c23bb1d9715a3a79d033efb3438914b1.jpg",
+  "https://i.pinimg.com/736x/6a/d2/d5/6ad2d5e2e9c708170b1338d8f763eb5d.jpg",
+  "https://i.pinimg.com/736x/d4/0b/df/d40bdf19de699c264e1d6c8b93557d34.jpg",
 ];
 
-// STATE PERMAINAN
 let selectedCategories = [];
-let teams = [];
-let openedQuestions = []; // Format: "catIndex-pointIndex" (hanya yang sudah ditutup)
-let activeCardElement = null; // Menyimpan kotak yang sedang diklik
+let teams = [
+  { id: 1, nama: "Kelompok 1", anggota: "", avatar: avatars[0], skor: 0 },
+  { id: 2, nama: "Kelompok 2", anggota: "", avatar: avatars[1], skor: 0 },
+];
+let openedQuestions = [];
+let activeCardElement = null;
 
 let timerInterval;
 let timeLeft = 0;
 let isPaused = false;
-let currentQuestionData = null; // Data soal yang sedang tayang
+let currentQuestionData = null;
 
-// --- FASE 1: LOBBY & PERSIAPAN ---
+// --- LOBBY ---
 function initLobby() {
   const catContainer = document.getElementById("category-options");
+  if (!catContainer) return;
+  renderCategoryCheckboxes();
+  renderTeamLobby();
+  renderAvatarOptions();
+}
+
+function renderCategoryCheckboxes() {
+  const catContainer = document.getElementById("category-options");
+  catContainer.innerHTML = "";
   databaseSoal.forEach((cat, idx) => {
-    catContainer.innerHTML += `
-            <label class="cat-checkbox">
-                <input type="checkbox" value="${idx}" onchange="checkCategorySelection()">
-                ${cat.nama}
-            </label>
-        `;
+    const isChecked = selectedCategories.includes(idx) ? "checked" : "";
+    catContainer.innerHTML += `<label class="cat-checkbox"><input type="checkbox" value="${idx}" ${isChecked} onchange="updateCatCount()"> ${cat.nama}</label>`;
   });
-  renderTeamInputs();
+  updateCatCount();
 }
 
-function checkCategorySelection() {
-  const checkboxes = document.querySelectorAll(".cat-checkbox input:checked");
-  document.getElementById("cat-count").innerText = checkboxes.length;
+function updateCatCount() {
+  selectedCategories = Array.from(
+    document.querySelectorAll(".cat-checkbox input:checked"),
+  ).map((cb) => parseInt(cb.value));
+  document.getElementById("cat-count").innerText = selectedCategories.length;
+}
 
-  // Nonaktifkan centang lebih dari 5
-  document
-    .querySelectorAll(".cat-checkbox input:not(:checked)")
-    .forEach((cb) => {
-      cb.disabled = checkboxes.length >= 5;
-    });
-
-  const btnStart = document.getElementById("btn-start-game");
-  if (checkboxes.length === 5) {
-    btnStart.classList.remove("disabled");
-  } else {
-    btnStart.classList.add("disabled");
+function randomizeCategories() {
+  let count = parseInt(document.getElementById("random-cat-count").value);
+  if (count > databaseSoal.length) count = databaseSoal.length;
+  let indices = Array.from({ length: databaseSoal.length }, (_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
   }
+  selectedCategories = indices.slice(0, count);
+  renderCategoryCheckboxes();
 }
 
-function renderTeamInputs() {
-  let count = parseInt(document.getElementById("team-count").value);
-  if (count > 10) count = 10;
-  if (count < 2) count = 2;
-  document.getElementById("team-count").value = count;
-
+function renderTeamLobby() {
   const container = document.getElementById("team-inputs");
   container.innerHTML = "";
+  teams.forEach((t) => {
+    container.innerHTML += `<div class="team-edit-btn" onclick="openEditTeamModal(${t.id})"><img src="${t.avatar}"><div class="team-edit-info"><h4>${t.nama}</h4><p>${t.anggota || "Tanpa anggota"}</p></div></div>`;
+  });
+}
 
-  for (let i = 0; i < count; i++) {
-    container.innerHTML += `
-            <div class="team-input-row">
-                <img src="${avatars[i]}" alt="Avatar">
-                <input type="text" id="team-name-${i}" value="Kelompok ${i + 1}">
-            </div>
-        `;
+function addTeam() {
+  teams.push({
+    id: Date.now(),
+    nama: `Kelompok ${teams.length + 1}`,
+    anggota: "",
+    avatar: avatars[Math.floor(Math.random() * avatars.length)],
+    skor: 0,
+  });
+  renderTeamLobby();
+}
+
+let tempEditingTeamId = null;
+function openEditTeamModal(id) {
+  tempEditingTeamId = id;
+  const team = teams.find((t) => t.id === id);
+  document.getElementById("edit-team-name").value = team.nama;
+  document.getElementById("edit-team-members").value = team.anggota;
+  document.querySelectorAll(".avatar-option").forEach((img) => {
+    img.classList.remove("selected");
+    if (img.src === team.avatar) img.classList.add("selected");
+  });
+  document.getElementById("edit-team-modal").classList.remove("hidden");
+}
+
+function renderAvatarOptions() {
+  const grid = document.getElementById("avatar-selection-grid");
+  grid.innerHTML = "";
+  avatars.forEach((url) => {
+    grid.innerHTML += `<img src="${url}" class="avatar-option" onclick="selectAvatar(this, '${url}')">`;
+  });
+}
+
+let tempSelectedAvatar = "";
+function selectAvatar(el, url) {
+  document
+    .querySelectorAll(".avatar-option")
+    .forEach((img) => img.classList.remove("selected"));
+  el.classList.add("selected");
+  tempSelectedAvatar = url;
+}
+
+function saveTeamEdit() {
+  const team = teams.find((t) => t.id === tempEditingTeamId);
+  team.nama = document.getElementById("edit-team-name").value;
+  team.anggota = document.getElementById("edit-team-members").value;
+  if (tempSelectedAvatar !== "") team.avatar = tempSelectedAvatar;
+  document.getElementById("edit-team-modal").classList.add("hidden");
+  renderTeamLobby();
+}
+
+function deleteTeam() {
+  if (teams.length <= 2) {
+    alert("Minimal 2 tim yang bertanding.");
+    return;
   }
+  teams = teams.filter((t) => t.id !== tempEditingTeamId);
+  document.getElementById("edit-team-modal").classList.add("hidden");
+  renderTeamLobby();
 }
 
 function startGame() {
-  if (document.querySelectorAll(".cat-checkbox input:checked").length !== 5)
+  if (selectedCategories.length === 0) {
+    alert("Pilih minimal 1 kategori!");
     return;
-
-  // Simpan Kategori
-  selectedCategories = [];
-  document.querySelectorAll(".cat-checkbox input:checked").forEach((cb) => {
-    selectedCategories.push(databaseSoal[cb.value]);
-  });
-
-  // Simpan Tim
-  teams = [];
-  const teamCount = parseInt(document.getElementById("team-count").value);
-  for (let i = 0; i < teamCount; i++) {
-    teams.push({
-      id: i,
-      nama: document.getElementById(`team-name-${i}`).value,
-      avatar: avatars[i],
-      skor: 0,
-      menjawab: 0,
-    });
   }
-
   document.getElementById("lobby").classList.remove("active");
   document.getElementById("game").classList.add("active");
-
   renderBoard();
   renderScoreboard();
 }
 
-// --- FASE 2: PAPAN PERMAINAN ---
+// --- PAPAN PERMAINAN ---
 function renderBoard() {
   const board = document.getElementById("game-board");
+  board.style.gridTemplateColumns = `repeat(${selectedCategories.length}, 1fr)`;
   board.innerHTML = "";
 
-  // Header Kategori
-  selectedCategories.forEach((cat) => {
-    board.innerHTML += `<div class="category-header">${cat.nama}</div>`;
+  selectedCategories.forEach((idx) => {
+    board.innerHTML += `<div class="category-header">${databaseSoal[idx].nama}</div>`;
   });
-
-  // Kotak Soal
   for (let i = 0; i < 5; i++) {
-    selectedCategories.forEach((cat, cIdx) => {
+    selectedCategories.forEach((catIdx) => {
+      const cat = databaseSoal[catIdx];
       const q = cat.soal[i];
-      const cardId = `${cIdx}-${i}`;
+      const cardId = `${catIdx}-${i}`;
       const card = document.createElement("div");
       card.className = `card ${openedQuestions.includes(cardId) ? "disabled" : ""}`;
       card.id = `card-${cardId}`;
       card.innerHTML = q.points;
-
-      // Jika sudah dijawab sebelumnya (untuk fitur badge tim)
-      // Cek apakah data tim ada di array openedQuestions atau state terpisah,
-      // untuk versi ini kita asumsikan bisa diklik ulang meskipun redup.
-
       card.onclick = () => openQuestion(cat.nama, q, cardId, card);
       board.appendChild(card);
     });
   }
 }
 
-// --- FASE 3: MODAL SOAL & WAKTU ---
+// --- MODAL SOAL & WAKTU ---
 const modal = document.getElementById("question-modal");
 const timerBar = document.getElementById("timer-progress");
-const ansSection = document.getElementById("answer-section");
 
 function openQuestion(category, qData, cardId, cardEl) {
+  if (openedQuestions.includes(cardId)) return;
   currentQuestionData = { qData, cardId };
-  activeCardElement = cardEl; // Simpan elemen kotak yang diklik
+  activeCardElement = cardEl;
 
   document.getElementById("modal-category").innerText = category;
   document.getElementById("modal-points").innerText = qData.points;
   document.getElementById("modal-question").innerText = qData.q;
-  document.getElementById("modal-answer").innerText = qData.a;
 
-  // Reset Modal UI
-  document.querySelector(".modal-content").classList.remove("bg-success");
-  ansSection.classList.add("hidden");
-  document.getElementById("controls-main").classList.remove("hidden");
-  document.getElementById("controls-verify").classList.add("hidden");
+  document.getElementById("modal-answer-big").innerText = qData.a;
+
+  document.querySelector(".q-modal-layout").classList.remove("bg-success");
+  document.getElementById("answer-section").classList.add("hidden");
+
+  document.getElementById("btn-pause").classList.remove("hidden");
+  document.getElementById("btn-resume").classList.add("hidden");
 
   const imgEl = document.getElementById("modal-image");
   if (qData.img) {
@@ -447,7 +477,6 @@ function openQuestion(category, qData, cardId, cardEl) {
   }
 
   modal.classList.remove("hidden");
-
   startTimer(30);
 }
 
@@ -455,21 +484,19 @@ function startTimer(seconds) {
   clearInterval(timerInterval);
   isPaused = false;
   timeLeft = seconds;
-
   timerBar.style.width = "100%";
   timerBar.style.backgroundColor = "var(--primary)";
 
   timerInterval = setInterval(() => {
     if (!isPaused) {
-      timeLeft -= 0.1; // Hitung presisi
-      const percentage = (timeLeft / seconds) * 100;
-      timerBar.style.width = `${percentage}%`;
-
-      if (percentage <= 30) timerBar.style.backgroundColor = "var(--wrong)";
-
+      timeLeft -= 0.1;
+      timerBar.style.width = `${(timeLeft / seconds) * 100}%`;
+      if ((timeLeft / seconds) * 100 <= 30)
+        timerBar.style.backgroundColor = "var(--wrong)";
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         document.getElementById("audio-wrong").play();
+        pauseTimer();
       }
     }
   }, 100);
@@ -477,99 +504,74 @@ function startTimer(seconds) {
 
 function pauseTimer() {
   isPaused = true;
-  timerBar.style.backgroundColor = "#fbbf24"; // Warna kuning pause
-  document.getElementById("controls-main").classList.add("hidden");
-  document.getElementById("controls-verify").classList.remove("hidden");
+  timerBar.style.backgroundColor = "#fbbf24";
+  document.getElementById("btn-pause").classList.add("hidden");
+  document.getElementById("btn-resume").classList.remove("hidden");
 }
 
 function resumeTimer() {
   isPaused = false;
   timerBar.style.backgroundColor =
     (timeLeft / 30) * 100 > 30 ? "var(--primary)" : "var(--wrong)";
-  document.getElementById("controls-verify").classList.add("hidden");
-  document.getElementById("controls-main").classList.remove("hidden");
+  document.getElementById("btn-resume").classList.add("hidden");
+  document.getElementById("btn-pause").classList.remove("hidden");
 }
 
-// --- FASE 4: PEMILIHAN TIM SAAT BENAR/SALAH ---
-let currentAction = ""; // 'benar' atau 'salah'
+function revealAnswer() {
+  document.getElementById("answer-section").classList.remove("hidden");
+}
 
+// --- VERIFIKASI JAWABAN ---
+let currentAction = "";
 function showTeamSelector(action) {
+  if (!isPaused) pauseTimer();
+
   currentAction = action;
-  const selectorModal = document.getElementById("team-selector-modal");
-  const btnContainer = document.getElementById("team-selector-buttons");
-
   document.getElementById("selector-title").innerText =
-    action === "benar" ? "Pilih Tim yang Benar ✅" : "Pilih Tim yang Salah ❌";
-  document.getElementById("selector-title").style.color =
-    action === "benar" ? "var(--correct)" : "var(--wrong)";
+    action === "benar" ? "Tim Mana yang Benar?" : "Tim Mana yang Salah?";
 
+  const btnContainer = document.getElementById("team-selector-buttons");
   btnContainer.innerHTML = "";
-  teams.forEach((t) => {
-    btnContainer.innerHTML += `
-            <div class="team-btn" onclick="executeTeamAction(${t.id})">
-                <img src="${t.avatar}" alt="Avatar">
-                <span style="font-weight:bold; font-size:0.9rem; text-align:center;">${t.nama}</span>
-            </div>
-        `;
+  teams.forEach((t, idx) => {
+    btnContainer.innerHTML += `<div class="team-btn" onclick="executeTeamAction(${idx})"><img src="${t.avatar}"><span style="font-weight:bold; font-size:1.1rem; text-align:center;">${t.nama}</span></div>`;
   });
-
-  selectorModal.classList.remove("hidden");
+  document.getElementById("team-selector-modal").classList.remove("hidden");
 }
 
 function closeTeamSelector() {
   document.getElementById("team-selector-modal").classList.add("hidden");
 }
 
-function executeTeamAction(teamId) {
+function executeTeamAction(teamIndex) {
   closeTeamSelector();
   const poin = currentQuestionData.qData.points;
-  const teamIndex = teams.findIndex((t) => t.id === teamId);
 
   if (currentAction === "salah") {
-    // Kurangi Skor, mainkan suara salah, dan JALANKAN WAKTU LAGI
     teams[teamIndex].skor -= poin;
     document.getElementById("audio-wrong").play();
     renderScoreboard();
     resumeTimer();
   } else if (currentAction === "benar") {
-    // Tambah Skor, mainkan suara benar, MATIKAN WAKTU
     teams[teamIndex].skor += poin;
-    teams[teamIndex].menjawab += 1;
     document.getElementById("audio-correct").play();
     renderScoreboard();
-
     clearInterval(timerInterval);
 
-    // Ubah tampilan modal jadi hijau dan tunjukkan jawaban
-    document.querySelector(".modal-content").classList.add("bg-success");
-    ansSection.classList.remove("hidden");
-    document.getElementById("controls-verify").classList.add("hidden");
+    document.querySelector(".q-modal-layout").classList.add("bg-success");
+    revealAnswer();
 
-    // Berikan tombol khusus untuk menutup soal sukses
-    document.getElementById("controls-main").innerHTML = `
-            <button class="btn-primary" style="width:100%; font-size:1.5rem;" onclick="closeQuestion(true, ${teamIndex})">Selesai & Kembali ke Papan</button>
-        `;
-    document.getElementById("controls-main").classList.remove("hidden");
+    setTimeout(() => {
+      closeQuestion(true, teamIndex);
+    }, 2500);
   }
 }
 
-// Tutup soal (bisa karena benar, atau diskip tanpa pemenang)
 function closeQuestion(hasWinner, winningTeamIndex = null) {
   modal.classList.add("hidden");
   clearInterval(timerInterval);
-
-  // Kembalikan tombol kontrol utama seperti semula
-  document.getElementById("controls-main").innerHTML = `
-        <button id="btn-pause" class="btn-warning" onclick="pauseTimer()">⏸️ Pause (Anak Ingin Menjawab)</button>
-        <button id="btn-close-early" class="btn-secondary" onclick="closeQuestion(false)">Tutup Tanpa Pemenang</button>
-    `;
-
-  // Tandai kotak di papan sudah dibuka
   if (!openedQuestions.includes(currentQuestionData.cardId)) {
     openedQuestions.push(currentQuestionData.cardId);
     activeCardElement.classList.add("disabled");
-
-    // Beri lencana avatar tim yang menang
     if (hasWinner && winningTeamIndex !== null) {
       const badge = document.createElement("img");
       badge.src = teams[winningTeamIndex].avatar;
@@ -577,21 +579,20 @@ function closeQuestion(hasWinner, winningTeamIndex = null) {
       activeCardElement.appendChild(badge);
     }
   }
-
-  checkGameEnd();
+  if (openedQuestions.length >= selectedCategories.length * 5)
+    setTimeout(showPodium, 1500);
 }
 
-// --- FASE 5: SKOR & PODIUM ---
+// --- SKOR & PODIUM ---
 function renderScoreboard() {
   const container = document.getElementById("scoreboard");
   container.innerHTML = "";
-
   teams.forEach((t, idx) => {
     container.innerHTML += `
             <div class="score-card">
                 <img src="${t.avatar}">
                 <h3>${t.nama}</h3>
-                <span id="display-score-${idx}">${t.skor}</span>
+                <span>${t.skor}</span>
                 <div class="score-adjust">
                     <button class="btn-green" onclick="adjustScore(${idx}, 100)">+100</button>
                     <button class="btn-red" onclick="adjustScore(${idx}, -100)">-100</button>
@@ -605,62 +606,53 @@ function adjustScore(teamIdx, amount) {
   teams[teamIdx].skor += amount;
   renderScoreboard();
 }
-
 function toggleScoreboard() {
-  const smodal = document.getElementById("score-modal");
-  smodal.classList.toggle("hidden");
-}
-
-function checkGameEnd() {
-  if (openedQuestions.length >= 25) {
-    setTimeout(showPodium, 1000);
-  }
+  document.getElementById("score-modal").classList.toggle("hidden");
+  renderScoreboard();
 }
 
 function showPodium() {
   document.getElementById("game").classList.remove("active");
   document.getElementById("podium").classList.add("active");
 
-  // Urutkan tim berdasarkan skor tertinggi
   let ranked = [...teams].sort((a, b) => b.skor - a.skor);
-
   const stand = document.getElementById("podium-stand");
   const others = document.getElementById("other-ranks");
+  const othersContainer = document.getElementById("other-ranks-container");
+
   stand.innerHTML = "";
   others.innerHTML = "";
 
-  // Juara 2 (Kiri)
   if (ranked[1]) stand.innerHTML += createRankElement(ranked[1], 2);
-  // Juara 1 (Tengah)
-  if (ranked[0]) stand.innerHTML += createRankElement(ranked[0], 1);
-  // Juara 3 (Kanan)
+  if (ranked[0]) stand.innerHTML += createRankElement(ranked[0], 1, true);
   if (ranked[2]) stand.innerHTML += createRankElement(ranked[2], 3);
 
-  // Peringkat 4 dst
-  for (let i = 3; i < ranked.length; i++) {
-    others.innerHTML += `
-            <div class="other-rank-card">
-                <h2>#${i + 1}</h2>
-                <img src="${ranked[i].avatar}">
-                <div>
-                    <h3 style="margin:0;">${ranked[i].nama}</h3>
-                    <span style="color:var(--accent); font-weight:bold;">Skor: ${ranked[i].skor}</span>
+  if (ranked.length > 3) {
+    othersContainer.classList.remove("hidden");
+    for (let i = 3; i < ranked.length; i++) {
+      others.innerHTML += `
+                <div class="other-rank-card">
+                    <h2>#${i + 1}</h2>
+                    <img src="${ranked[i].avatar}">
+                    <div class="other-text-info"><h3 style="color:white; font-size:1.2rem;">${ranked[i].nama}</h3><span style="color:var(--accent); font-weight:bold;">${ranked[i].skor} Poin</span></div>
                 </div>
-            </div>
-        `;
+            `;
+    }
   }
 }
 
-function createRankElement(teamData, rank) {
+function createRankElement(teamData, rank, isFirst = false) {
+  let crownHTML = isFirst ? `<div class="crown-emoji">👑</div>` : "";
+  let piala = rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉";
   return `
         <div class="podium-rank rank-${rank}">
+            ${crownHTML}
             <img src="${teamData.avatar}">
             <h3>${teamData.nama}</h3>
-            <h2>${teamData.skor} Poin</h2>
-            <div class="stand">#${rank}</div>
+            <h2>${teamData.skor} Pts</h2>
+            <div class="stand"><span style="font-size:2rem;">${piala}</span> <br> #${rank}</div>
         </div>
     `;
 }
 
-// Jalankan fungsi awal saat halaman dimuat
 window.onload = initLobby;

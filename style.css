@@ -1,11 +1,8 @@
-/* =========================================
-   TEMA DASAR & RESET (GAME SHOW STYLE)
-   ========================================= */
 :root {
-  --bg-color: #020617; /* Biru sangat gelap */
+  --bg-color: #020617;
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
-  --accent: #fbbf24; /* Kuning Emas Jeopardy */
+  --accent: #fbbf24;
   --glass-bg: rgba(30, 41, 59, 0.7);
   --glass-border: rgba(255, 255, 255, 0.1);
   --text: #f8fafc;
@@ -19,7 +16,6 @@
   padding: 0;
   font-family: "Segoe UI", system-ui, sans-serif;
 }
-
 body {
   background: radial-gradient(circle at top, #1e293b, var(--bg-color));
   color: var(--text);
@@ -30,39 +26,48 @@ body {
   overflow-x: hidden;
 }
 
-/* =========================================
-   NAVIGASI & STRUKTUR HALAMAN
-   ========================================= */
+.hidden {
+  display: none !important;
+}
+
+/* KUSTOMISASI SCROLL BAR */
+.custom-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
 .glass-nav {
   width: 100%;
-  padding: 15px;
+  padding: 15px 30px;
   background: rgba(2, 6, 23, 0.8);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--glass-border);
   display: flex;
-  justify-content: center;
-  gap: 15px;
+  justify-content: space-between;
+  align-items: center;
   position: sticky;
   top: 0;
   z-index: 100;
 }
-
 .glass-nav button {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--glass-border);
-  padding: 10px 20px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
+  padding: 8px 15px;
+  font-size: 0.9rem;
   border-radius: 8px;
-  transition: 0.3s;
-}
-.glass-nav button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
 }
 
-/* PENGATUR LAYAR (Hanya tampilkan yang aktif) */
 .screen {
   display: none;
   width: 100%;
@@ -75,7 +80,6 @@ body {
 .screen.active {
   display: block;
 }
-
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(15px);
@@ -85,9 +89,6 @@ body {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
 }
 
-/* =========================================
-   TOMBOL GLOBAL
-   ========================================= */
 button {
   padding: 12px 24px;
   border: none;
@@ -136,30 +137,20 @@ button {
   width: 100%;
   padding: 18px;
   font-size: 1.2rem;
-  margin-top: 25px;
 }
-.btn-large.disabled {
-  background: #1e293b;
-  color: #475569;
-  box-shadow: none;
-  cursor: not-allowed;
-  transform: none;
+.btn-big {
+  font-size: 1.1rem;
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-weight: 900;
 }
 
-/* =========================================
-   LOBBY (PERSIAPAN)
-   ========================================= */
+/* LOBBY BERSIH */
 .lobby-container {
-  max-width: 800px;
-  width: 90%;
+  max-width: 850px;
+  width: 95%;
   margin: 40px auto;
   text-align: center;
-}
-.lobby-container h1 {
-  font-size: 2.5rem;
-  color: var(--accent);
-  margin-bottom: 30px;
-  text-shadow: 0 2px 10px rgba(251, 191, 36, 0.3);
 }
 .lobby-section {
   background: rgba(0, 0, 0, 0.4);
@@ -169,15 +160,22 @@ button {
   border: 1px solid var(--glass-border);
   text-align: left;
 }
-.lobby-section h3 {
-  margin-bottom: 15px;
-  color: #94a3b8;
+.input-number {
+  width: 60px;
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+  background: #1e293b;
+  color: var(--accent);
+  font-weight: bold;
+  text-align: center;
+  outline: none;
 }
-
 .category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
+  margin-top: 15px;
 }
 .cat-checkbox {
   display: flex;
@@ -187,13 +185,12 @@ button {
   background: #1e293b;
   padding: 12px 15px;
   border-radius: 8px;
-  transition: 0.2s;
   border: 1px solid #334155;
   font-weight: 600;
+  color: white;
 }
 .cat-checkbox:hover {
-  background: #2563eb;
-  border-color: #60a5fa;
+  border-color: var(--primary);
 }
 .cat-checkbox input {
   transform: scale(1.5);
@@ -201,63 +198,74 @@ button {
   accent-color: var(--accent);
 }
 
-.team-setup-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-.team-setup-controls input {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #334155;
-  background: #0f172a;
-  color: var(--accent);
-  font-weight: bold;
-  width: 80px;
-  font-size: 1.1rem;
-  text-align: center;
-}
+/* EDIT TIM DI LOBBY */
 .team-inputs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 15px;
+  margin-top: 15px;
 }
-.team-input-row {
+.team-edit-btn {
+  background: #0f172a;
+  padding: 15px;
+  border-radius: 12px;
+  border: 2px solid #334155;
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: #0f172a;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #1e293b;
+  gap: 15px;
+  cursor: pointer;
+  transition: 0.2s;
 }
-.team-input-row img {
-  width: 45px;
-  height: 45px;
+.team-edit-btn:hover {
+  border-color: var(--primary);
+  background: #1e293b;
+  transform: translateY(-2px);
+}
+.team-edit-btn img {
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
+  object-fit: cover;
+  background: white;
   border: 2px solid var(--primary);
+}
+.team-edit-info {
+  overflow: hidden;
+}
+.team-edit-info h4 {
+  color: white;
+  font-size: 1.1rem;
+  margin: 0 0 5px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.team-edit-info p {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.avatar-option {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
   background: white;
   object-fit: cover;
 }
-.team-input-row input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: white;
-  font-weight: bold;
-  font-size: 1rem;
-  outline: none;
+.avatar-option.selected {
+  border-color: var(--accent);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px var(--accent);
 }
 
-/* =========================================
-   PAPAN JEOPARDY UTAMA
-   ========================================= */
+/* PAPAN GAME */
 .board {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
   margin-bottom: 80px;
 }
@@ -271,10 +279,10 @@ button {
   border-radius: 10px;
   text-transform: uppercase;
   border: 2px solid #3b82f6;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 .card {
   background: linear-gradient(180deg, #1e293b, #0f172a);
@@ -287,7 +295,6 @@ button {
   border-radius: 10px;
   border: 2px solid #334155;
   transition: 0.3s;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   position: relative;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
@@ -308,7 +315,6 @@ button {
   box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
   text-shadow: none;
 }
-
 .team-badge {
   position: absolute;
   bottom: 8px;
@@ -323,11 +329,9 @@ button {
   animation: zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* =========================================
-   TOMBOL SKOR MENGAMBANG & PAPAN SKOR
-   ========================================= */
+/* PAPAN SKOR */
 .btn-view-score {
-  position: absolute;
+  position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
@@ -342,10 +346,6 @@ button {
   cursor: pointer;
   z-index: 100;
 }
-.btn-view-score:hover {
-  transform: translateX(-50%) scale(1.05);
-}
-
 .scoreboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -383,7 +383,6 @@ button {
   color: var(--accent);
   font-weight: 900;
   margin: 10px 0;
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
 }
 .score-adjust {
   display: flex;
@@ -395,70 +394,108 @@ button {
   font-size: 0.9rem;
 }
 
-/* =========================================
-   MODAL (POPUP SOAL & PILIH TIM)
-   ========================================= */
+/* MODAL SOAL */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(2, 6, 23, 0.95);
+  background: rgba(2, 6, 23, 0.98);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(8px);
-}
-.modal.hidden {
-  display: none;
+  backdrop-filter: blur(15px);
 }
 .modal-content {
-  max-width: 900px;
+  max-width: 1000px;
   width: 95%;
-  text-align: center;
+  height: 90vh;
   animation: zoomIn 0.3s ease;
   position: relative;
 }
 
-.modal-header {
+.q-modal-layout {
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.q-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 15px;
   border-bottom: 1px solid #334155;
   padding-bottom: 15px;
+  flex-shrink: 0;
 }
-.modal-header h2 {
-  color: #94a3b8;
-  font-size: 1.5rem;
+.q-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
+.q-footer {
+  flex-shrink: 0;
+  padding-top: 20px;
+  border-top: 1px solid #334155;
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .points-badge {
   background: var(--accent);
   color: #0f172a;
-  padding: 8px 25px;
+  padding: 5px 25px;
   border-radius: 30px;
   font-weight: 900;
   font-size: 2rem !important;
-  box-shadow: 0 4px 10px rgba(251, 191, 36, 0.3);
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
 }
-
 #modal-question {
-  font-size: 3.5rem;
-  margin: 30px 0 50px;
+  font-size: clamp(2rem, 3.5vw, 4rem);
   line-height: 1.3;
   font-weight: 900;
   text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  margin: auto 0;
 }
 #modal-image {
   max-width: 100%;
-  max-height: 45vh;
+  max-height: 35vh;
   border-radius: 12px;
-  margin: 0 auto 30px;
-  display: block;
+  margin-top: 25px;
   border: 3px solid var(--glass-border);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  object-fit: contain;
+}
+
+.answer-section {
+  width: 100%;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 25px;
+  border: 1px solid var(--glass-border);
+}
+.answer-text {
+  font-size: clamp(1.8rem, 3vw, 3.5rem);
+  color: var(--accent);
+  font-weight: 900;
+  margin: 0;
+}
+.bg-success {
+  background: linear-gradient(145deg, #064e3b, #0f172a) !important;
+  border: 2px solid #10b981 !important;
 }
 
 .timer-bar {
@@ -467,8 +504,9 @@ button {
   background: #0f172a;
   border-radius: 10px;
   overflow: hidden;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   border: 1px solid #334155;
+  flex-shrink: 0;
 }
 #timer-progress {
   width: 100%;
@@ -478,37 +516,21 @@ button {
     width 0.1s linear,
     background-color 0.3s;
 }
-
 .modal-controls {
-  margin-top: 40px;
   display: flex;
-  justify-content: center;
   gap: 15px;
   flex-wrap: wrap;
-}
-.answer-section {
-  margin: 30px 0;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-}
-.answer-text {
-  font-size: 2.5rem;
-  color: var(--accent);
-  font-weight: 900;
-}
-.bg-success {
-  background: linear-gradient(145deg, #064e3b, #0f172a) !important;
-  border: 2px solid #10b981 !important;
+  justify-content: center;
+  width: 100%;
 }
 
-/* MODAL PEMILIH TIM KECIL */
+/* PEMILIH TIM */
 .team-selector-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 15px;
   margin-top: 25px;
-  max-height: 60vh;
+  max-height: 50vh;
   overflow-y: auto;
   padding: 10px;
 }
@@ -533,68 +555,81 @@ button {
   object-fit: cover;
   border: 3px solid transparent;
 }
-.team-btn:hover {
-  background: #2563eb;
-  border-color: white;
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-}
-.team-btn:hover img {
-  border-color: white;
-}
 
-/* =========================================
-   PODIUM KEMENANGAN (END GAME)
-   ========================================= */
+/* PODIUM KEMENANGAN */
 .podium-container {
   max-width: 1000px;
   width: 95%;
   margin: 20px auto;
   text-align: center;
 }
-.podium-container h1 {
-  font-size: 3.5rem;
-  color: var(--accent);
-  text-shadow: 0 4px 15px rgba(251, 191, 36, 0.5);
-  margin-bottom: 20px;
+.podium-title {
+  font-size: 4rem;
+  text-shadow: 0 0 20px var(--accent);
+  position: relative;
+  z-index: 30;
 }
-
 .podium-stand {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  gap: 15px;
-  margin: 40px 0;
+  gap: 40px;
   height: 350px;
+  margin: 30px auto 30px;
+  max-width: 800px;
 }
 .podium-rank {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 180px;
-  animation: slideUp 0.8s ease backwards;
+  flex: 1;
+  max-width: 220px;
+  position: relative;
+  animation: slideUp 0.8s backwards;
+}
+
+.crown-emoji {
+  font-size: 3.5rem;
+  position: absolute;
+  top: -50px;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.5));
+  z-index: 20;
+  animation: float 3s infinite;
 }
 .podium-rank img {
   width: 100px;
   height: 100px;
   border-radius: 50%;
   border: 5px solid white;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   background: white;
   object-fit: cover;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  position: relative;
 }
 .podium-rank h3 {
   color: white;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
+  font-weight: 900;
   margin-bottom: 5px;
-  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  z-index: 10;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .podium-rank h2 {
   color: var(--accent);
-  font-size: 2.2rem;
-  margin-bottom: 15px;
+  font-size: 1.8rem;
   font-weight: 900;
+  margin-bottom: 15px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  z-index: 10;
+  text-align: center;
+  width: 100%;
 }
 
 .rank-1 {
@@ -611,43 +646,40 @@ button {
 }
 
 .rank-1 .stand {
-  height: 220px;
-  background: linear-gradient(to top, #854d0e, #fef08a);
+  height: 200px;
+  background: linear-gradient(180deg, #ca8a04, #854d0e);
   border-radius: 15px 15px 0 0;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 5rem;
-  font-weight: 900;
-  color: #422006;
-  box-shadow: 0 -5px 20px rgba(250, 204, 21, 0.4);
-}
-.rank-2 .stand {
-  height: 160px;
-  background: linear-gradient(to top, #334155, #cbd5e1);
-  border-radius: 15px 15px 0 0;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding-top: 15px;
   font-size: 4rem;
   font-weight: 900;
-  color: #0f172a;
-  box-shadow: 0 -5px 20px rgba(203, 213, 225, 0.2);
+  color: #fef08a;
+  border: 2px solid #facc15;
+  border-bottom: none;
 }
-.rank-3 .stand {
-  height: 120px;
-  background: linear-gradient(to top, #7c2d12, #fdba74);
+.rank-2 .stand {
+  height: 150px;
+  background: linear-gradient(180deg, #94a3b8, #475569);
   border-radius: 15px 15px 0 0;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding-top: 15px;
   font-size: 3rem;
   font-weight: 900;
-  color: #431407;
-  box-shadow: 0 -5px 20px rgba(253, 186, 116, 0.2);
+  color: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  border-bottom: none;
+}
+.rank-3 .stand {
+  height: 100px;
+  background: linear-gradient(180deg, #b45309, #7c2d12);
+  border-radius: 15px 15px 0 0;
+  width: 100%;
+  padding-top: 10px;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #fdba74;
+  border: 2px solid #f97316;
+  border-bottom: none;
 }
 
 .other-ranks {
@@ -657,16 +689,16 @@ button {
   gap: 15px;
   border-top: 1px solid #334155;
   padding-top: 30px;
-  margin-bottom: 30px;
 }
 .other-rank-card {
   background: rgba(0, 0, 0, 0.5);
-  padding: 10px 25px;
+  padding: 10px 20px;
   border-radius: 30px;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
   border: 1px solid #334155;
+  max-width: 250px;
 }
 .other-rank-card h2 {
   color: #94a3b8;
@@ -678,10 +710,19 @@ button {
   border-radius: 50%;
   background: white;
   object-fit: cover;
-  border: 2px solid #64748b;
+}
+.other-text-info {
+  overflow: hidden;
+}
+.other-text-info h3 {
+  margin: 0;
+  color: white;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ANIMASI */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -710,10 +751,14 @@ button {
     transform: translateY(0);
   }
 }
-
-/* Responsivitas Layar Kecil */
-@media (max-width: 900px) {
-  .board {
-    grid-template-columns: repeat(3, 1fr);
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
   }
 }
