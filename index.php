@@ -15,7 +15,7 @@ $version = time();
     <nav class="glass-nav">
         <span style="color: white; font-weight: bold; font-size:1.2rem;">Portal Game Edukasi</span>
         <?php if($is_admin): ?>
-            <button onclick="alert('Halaman Edit Soal akan segera hadir!')" class="btn-warning">Mode Admin Aktif</button>
+            <button onclick="window.location.href='admin.php'" class="btn-warning">⚙️ Dasbor Admin</button>
             <button onclick="window.location.href='logout.php'" class="btn-danger">Keluar Admin</button>
         <?php else: ?>
             <button onclick="document.getElementById('login-modal').classList.remove('hidden')" class="btn-secondary">Admin Login</button>
