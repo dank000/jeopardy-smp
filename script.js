@@ -1,8 +1,9 @@
-// script.js
-const defaultData = [
+// DATABASE SOAL MENTAH (9 Kategori)
+const databaseSoal = [
   {
-    category: "Wawasan Agama",
-    questions: [
+    id: "agm",
+    nama: "Wawasan Agama",
+    soal: [
       {
         points: 100,
         q: "Sebutkan tempat ibadah umat Hindu!",
@@ -29,15 +30,16 @@ const defaultData = [
       },
       {
         points: 500,
-        q: "Tradisi membakar uang kertas (Gim Coa) biasanya dilakukan oleh umat?",
-        a: "Khonghucu / Tridharma",
+        q: "Tradisi membakar uang kertas biasanya dilakukan umat?",
+        a: "Khonghucu",
         img: "",
       },
     ],
   },
   {
-    category: "Bahasa Sunda",
-    questions: [
+    id: "snd",
+    nama: "Bahasa Sunda",
+    soal: [
       {
         points: 100,
         q: "Karangan rekaan anu wangunna pondok disebut?",
@@ -64,203 +66,379 @@ const defaultData = [
       },
       {
         points: 500,
-        q: "Sebutkeun salah sahiji conto tradisi Kampung Adat di Jawa Barat!",
-        a: "Seren Taun (Ciptagelar/Cigugur)",
+        q: "Conto tradisi Kampung Adat di Jawa Barat!",
+        a: "Seren Taun",
         img: "",
       },
     ],
   },
   {
-    category: "Tebak Gambar",
-    questions: [
+    id: "mat",
+    nama: "Matematika",
+    soal: [
+      { points: 100, q: "Hasil dari 5 x 8 + 10 adalah?", a: "50", img: "" },
       {
-        points: 100,
-        q: "Gambar apakah ini?",
-        a: "Isi gambar dari file",
+        points: 200,
+        q: "Rumus luas segitiga adalah?",
+        a: "1/2 x alas x tinggi",
         img: "",
       },
-      { points: 200, q: "Logo apakah ini?", a: "Isi logo", img: "" },
-      {
-        points: 300,
-        q: "Siluet bangunan apakah ini?",
-        a: "Nama bangunan",
-        img: "",
-      },
+      { points: 300, q: "Berapa akar kuadrat dari 144?", a: "12", img: "" },
       {
         points: 400,
-        q: "Siapakah tokoh dalam siluet ini?",
-        a: "Nama tokoh",
+        q: "Jika x + 5 = 12, berapakah nilai x?",
+        a: "7",
         img: "",
       },
       {
         points: 500,
-        q: "Apa nama benda tradisional ini?",
-        a: "Nama benda",
+        q: "Rumus keliling lingkaran adalah?",
+        a: "2 x π x r (atau π x d)",
         img: "",
       },
     ],
   },
   {
-    category: "Dunia Game",
-    questions: [
+    id: "ing",
+    nama: "Bahasa Inggris",
+    soal: [
+      { points: 100, q: "Apa bahasa Inggrisnya 'Buku'?", a: "Book", img: "" },
+      {
+        points: 200,
+        q: "Bentuk lampau (Past Tense) dari 'Go' adalah?",
+        a: "Went",
+        img: "",
+      },
+      {
+        points: 300,
+        q: "Antonim dari kata 'Beautiful' adalah?",
+        a: "Ugly",
+        img: "",
+      },
+      {
+        points: 400,
+        q: "Tense yang digunakan untuk kejadian yang sedang berlangsung?",
+        a: "Present Continuous",
+        img: "",
+      },
+      {
+        points: 500,
+        q: "Lengkapi: 'I have ... (melihat) that movie.'",
+        a: "Seen",
+        img: "",
+      },
+    ],
+  },
+  {
+    id: "ipa",
+    nama: "Ilmu Pengetahuan Alam",
+    soal: [
       {
         points: 100,
-        q: "Material utama untuk membuat Crafting Table di Minecraft?",
+        q: "Pusat tata surya kita adalah?",
+        a: "Matahari",
+        img: "",
+      },
+      {
+        points: 200,
+        q: "Proses tumbuhan membuat makanan sendiri disebut?",
+        a: "Fotosintesis",
+        img: "",
+      },
+      {
+        points: 300,
+        q: "Simbol unsur kimia untuk Air adalah?",
+        a: "H2O",
+        img: "",
+      },
+      {
+        points: 400,
+        q: "Alat pernapasan pada ikan adalah?",
+        a: "Insang",
+        img: "",
+      },
+      {
+        points: 500,
+        q: "Hukum Newton yang menjelaskan Aksi-Reaksi adalah?",
+        a: "Hukum Newton III",
+        img: "",
+      },
+    ],
+  },
+  {
+    id: "ips",
+    nama: "Ilmu Pengetahuan Sosial",
+    soal: [
+      {
+        points: 100,
+        q: "Ibukota negara Indonesia adalah?",
+        a: "Jakarta",
+        img: "",
+      },
+      {
+        points: 200,
+        q: "Benua terluas di dunia adalah?",
+        a: "Benua Asia",
+        img: "",
+      },
+      {
+        points: 300,
+        q: "Organisasi PBB yang mengurus pendidikan dan budaya?",
+        a: "UNESCO",
+        img: "",
+      },
+      {
+        points: 400,
+        q: "Samudera yang mengelilingi kepulauan Indonesia?",
+        a: "Hindia dan Pasifik",
+        img: "",
+      },
+      {
+        points: 500,
+        q: "Sistem tanam paksa pada zaman Belanda disebut?",
+        a: "Cultuurstelsel",
+        img: "",
+      },
+    ],
+  },
+  {
+    id: "gam",
+    nama: "Dunia Game",
+    soal: [
+      {
+        points: 100,
+        q: "Bahan membuat Crafting Table di Minecraft?",
         a: "Wood Planks",
         img: "",
       },
       {
         points: 200,
-        q: "Apa nama launcher tidak resmi yang populer untuk Minecraft?",
-        a: "TLauncher",
+        q: "Game MOBA populer 5v5 di HP?",
+        a: "Mobile Legends",
         img: "",
       },
       {
         points: 300,
-        q: "Situs layanan hosting server Minecraft gratis yang sering digunakan?",
+        q: "Layanan hosting gratis server Minecraft?",
         a: "Aternos",
         img: "",
       },
       {
         points: 400,
-        q: "Berapa blok Obsidian yang dibutuhkan untuk membuat Nether Portal ukuran terkecil?",
-        a: "10 Blok",
+        q: "Karakter utama dalam game Mario Bros?",
+        a: "Mario",
         img: "",
       },
       {
         points: 500,
-        q: "Mob boss yang berada di dimensi The End?",
+        q: "Mob boss di dimensi The End (Minecraft)?",
         a: "Ender Dragon",
         img: "",
       },
     ],
   },
   {
-    category: "Jajanan Viral",
-    questions: [
-      {
-        points: 100,
-        q: "Jajanan dari tepung kanji yang digulung dengan telur disebut?",
-        a: "Cilung",
-        img: "",
-      },
+    id: "jaj",
+    nama: "Jajanan Viral",
+    soal: [
+      { points: 100, q: "Tepung kanji digulung telur?", a: "Cilung", img: "" },
       {
         points: 200,
-        q: "Minuman teh kekinian asal Tiongkok dengan logo manusia salju?",
+        q: "Es krim manusia salju dari Tiongkok?",
         a: "Mixue",
         img: "",
       },
       {
         points: 300,
-        q: "Seblak identik dengan bumbu rempah utamanya, yaitu?",
+        q: "Bumbu utama seblak yang khas?",
         a: "Kencur (Cikur)",
         img: "",
       },
-      {
-        points: 400,
-        q: "Singkatan dari jajanan 'Basreng' adalah?",
-        a: "Bakso Goreng",
-        img: "",
-      },
+      { points: 400, q: "Singkatan dari Basreng?", a: "Bakso Goreng", img: "" },
       {
         points: 500,
-        q: "Jajanan manis mirip pancake berukuran kecil yang sempat viral?",
-        a: "Pancake Mini / Pancong Lumer",
+        q: "Roti bakar khas Bandung dengan selai warna-warni?",
+        a: "Roti Bakar",
+        img: "",
+      },
+    ],
+  },
+  {
+    id: "tbk",
+    nama: "Tebak Gambar",
+    soal: [
+      { points: 100, q: "Gambar apakah ini?", a: "Isi gambar file", img: "" },
+      { points: 200, q: "Logo apakah ini?", a: "Isi logo", img: "" },
+      { points: 300, q: "Siluet apa ini?", a: "Nama benda", img: "" },
+      { points: 400, q: "Siapa tokoh ini?", a: "Nama tokoh", img: "" },
+      {
+        points: 500,
+        q: "Benda tradisional apa ini?",
+        a: "Nama benda",
         img: "",
       },
     ],
   },
 ];
 
-let gameData = JSON.parse(localStorage.getItem("jeopardyData")) || defaultData;
-let gameState = JSON.parse(localStorage.getItem("jeopardyState")) || {
-  scores: [0, 0, 0, 0],
-  opened: [],
-  config: { timer: 30, teams: 4 },
-};
+// Data Avatar Haikyuu (URL Statis)
+const avatars = [
+  "https://i.pinimg.com/736x/84/c2/f7/84c2f7bfbe09d435133610de59600989.jpg", // Hinata
+  "https://i.pinimg.com/736x/77/8c/a0/778ca057ddde3db0098064beaa1d62c1.jpg", // Kageyama
+  "https://i.pinimg.com/736x/21/df/b8/21dfb85b4f0b2f5b4f3b5f096238381c.jpg", // Kuroo
+  "https://i.pinimg.com/736x/c9/a7/39/c9a739564f9b8417c8008894fb4ecb44.jpg", // Kenma
+  "https://i.pinimg.com/736x/7a/a6/f3/7aa6f380be5be4e35759ed6e5f848f07.jpg", // Bokuto
+  "https://i.pinimg.com/736x/6c/e0/b3/6ce0b3beaf8db5f5cc1149e29a997d9f.jpg", // Akaashi
+  "https://i.pinimg.com/736x/44/22/0c/44220c8f58c740702d8f9c0c822e0e49.jpg", // Oikawa
+  "https://i.pinimg.com/736x/c2/3b/b1/c23bb1d9715a3a79d033efb3438914b1.jpg", // Ushijima
+  "https://i.pinimg.com/736x/6a/d2/d5/6ad2d5e2e9c708170b1338d8f763eb5d.jpg", // Tsukishima
+  "https://i.pinimg.com/736x/d4/0b/df/d40bdf19de699c264e1d6c8b93557d34.jpg", // Nishinoya
+];
 
-// --- ROUTING ---
-function navigate(screenId) {
-  document
-    .querySelectorAll(".screen")
-    .forEach((s) => s.classList.remove("active"));
-  document.getElementById(screenId).classList.add("active");
-  if (screenId === "game") renderGame();
-  if (screenId === "editor") renderEditor();
-  if (screenId === "settings") loadSettings();
+// STATE PERMAINAN
+let selectedCategories = [];
+let teams = [];
+let openedQuestions = []; // Format: "catIndex-pointIndex" (hanya yang sudah ditutup)
+let activeCardElement = null; // Menyimpan kotak yang sedang diklik
+
+let timerInterval;
+let timeLeft = 0;
+let isPaused = false;
+let currentQuestionData = null; // Data soal yang sedang tayang
+
+// --- FASE 1: LOBBY & PERSIAPAN ---
+function initLobby() {
+  const catContainer = document.getElementById("category-options");
+  databaseSoal.forEach((cat, idx) => {
+    catContainer.innerHTML += `
+            <label class="cat-checkbox">
+                <input type="checkbox" value="${idx}" onchange="checkCategorySelection()">
+                ${cat.nama}
+            </label>
+        `;
+  });
+  renderTeamInputs();
 }
 
-// --- GAME LOGIC ---
-const board = document.getElementById("game-board");
-const scoreboard = document.getElementById("scoreboard");
-let timerInterval;
+function checkCategorySelection() {
+  const checkboxes = document.querySelectorAll(".cat-checkbox input:checked");
+  document.getElementById("cat-count").innerText = checkboxes.length;
 
-function renderGame() {
-  board.innerHTML = "";
-  scoreboard.innerHTML = "";
-
-  // Render Headers
-  gameData.forEach((cat) => {
-    const header = document.createElement("div");
-    header.className = "category-header";
-    header.innerText = cat.category;
-    board.appendChild(header);
-  });
-
-  // Render Cards
-  for (let i = 0; i < 5; i++) {
-    gameData.forEach((cat, cIdx) => {
-      const q = cat.questions[i];
-      const cardId = `${cIdx}-${i}`;
-      const card = document.createElement("div");
-      card.className = `card ${gameState.opened.includes(cardId) ? "disabled" : ""}`;
-      card.innerText = q.points;
-
-      card.onclick = () => {
-        if (!card.classList.contains("disabled"))
-          openQuestion(cat.category, q, cardId, card);
-      };
-      board.appendChild(card);
+  // Nonaktifkan centang lebih dari 5
+  document
+    .querySelectorAll(".cat-checkbox input:not(:checked)")
+    .forEach((cb) => {
+      cb.disabled = checkboxes.length >= 5;
     });
-  }
 
-  // Render Scoreboard
-  for (let i = 0; i < gameState.config.teams; i++) {
-    scoreboard.innerHTML += `
-            <div class="team">
-                <h3>Tim ${i + 1}</h3>
-                <span id="score-${i}">${gameState.scores[i]}</span>
-                <div class="score-btns">
-                    <button class="btn-green" onclick="updateScore(${i}, 100)">+100</button>
-                    <button class="btn-red" onclick="updateScore(${i}, -100)">-100</button>
-                </div>
+  const btnStart = document.getElementById("btn-start-game");
+  if (checkboxes.length === 5) {
+    btnStart.classList.remove("disabled");
+  } else {
+    btnStart.classList.add("disabled");
+  }
+}
+
+function renderTeamInputs() {
+  let count = parseInt(document.getElementById("team-count").value);
+  if (count > 10) count = 10;
+  if (count < 2) count = 2;
+  document.getElementById("team-count").value = count;
+
+  const container = document.getElementById("team-inputs");
+  container.innerHTML = "";
+
+  for (let i = 0; i < count; i++) {
+    container.innerHTML += `
+            <div class="team-input-row">
+                <img src="${avatars[i]}" alt="Avatar">
+                <input type="text" id="team-name-${i}" value="Kelompok ${i + 1}">
             </div>
         `;
   }
 }
 
-function updateScore(teamIdx, amount) {
-  gameState.scores[teamIdx] += amount;
-  document.getElementById(`score-${teamIdx}`).innerText =
-    gameState.scores[teamIdx];
-  saveState();
+function startGame() {
+  if (document.querySelectorAll(".cat-checkbox input:checked").length !== 5)
+    return;
+
+  // Simpan Kategori
+  selectedCategories = [];
+  document.querySelectorAll(".cat-checkbox input:checked").forEach((cb) => {
+    selectedCategories.push(databaseSoal[cb.value]);
+  });
+
+  // Simpan Tim
+  teams = [];
+  const teamCount = parseInt(document.getElementById("team-count").value);
+  for (let i = 0; i < teamCount; i++) {
+    teams.push({
+      id: i,
+      nama: document.getElementById(`team-name-${i}`).value,
+      avatar: avatars[i],
+      skor: 0,
+      menjawab: 0,
+    });
+  }
+
+  document.getElementById("lobby").classList.remove("active");
+  document.getElementById("game").classList.add("active");
+
+  renderBoard();
+  renderScoreboard();
 }
 
-// --- MODAL & TIMER ---
+// --- FASE 2: PAPAN PERMAINAN ---
+function renderBoard() {
+  const board = document.getElementById("game-board");
+  board.innerHTML = "";
+
+  // Header Kategori
+  selectedCategories.forEach((cat) => {
+    board.innerHTML += `<div class="category-header">${cat.nama}</div>`;
+  });
+
+  // Kotak Soal
+  for (let i = 0; i < 5; i++) {
+    selectedCategories.forEach((cat, cIdx) => {
+      const q = cat.soal[i];
+      const cardId = `${cIdx}-${i}`;
+      const card = document.createElement("div");
+      card.className = `card ${openedQuestions.includes(cardId) ? "disabled" : ""}`;
+      card.id = `card-${cardId}`;
+      card.innerHTML = q.points;
+
+      // Jika sudah dijawab sebelumnya (untuk fitur badge tim)
+      // Cek apakah data tim ada di array openedQuestions atau state terpisah,
+      // untuk versi ini kita asumsikan bisa diklik ulang meskipun redup.
+
+      card.onclick = () => openQuestion(cat.nama, q, cardId, card);
+      board.appendChild(card);
+    });
+  }
+}
+
+// --- FASE 3: MODAL SOAL & WAKTU ---
 const modal = document.getElementById("question-modal");
-const btnShowAnswer = document.getElementById("btn-show-answer");
-const ansText = document.getElementById("modal-answer");
-const imgEl = document.getElementById("modal-image");
 const timerBar = document.getElementById("timer-progress");
-const audioCorrect = document.getElementById("audio-correct");
-const audioWrong = document.getElementById("audio-wrong");
+const ansSection = document.getElementById("answer-section");
 
 function openQuestion(category, qData, cardId, cardEl) {
+  currentQuestionData = { qData, cardId };
+  activeCardElement = cardEl; // Simpan elemen kotak yang diklik
+
   document.getElementById("modal-category").innerText = category;
   document.getElementById("modal-points").innerText = qData.points;
   document.getElementById("modal-question").innerText = qData.q;
-  ansText.innerText = qData.a;
+  document.getElementById("modal-answer").innerText = qData.a;
 
+  // Reset Modal UI
+  document.querySelector(".modal-content").classList.remove("bg-success");
+  ansSection.classList.add("hidden");
+  document.getElementById("controls-main").classList.remove("hidden");
+  document.getElementById("controls-verify").classList.add("hidden");
+
+  const imgEl = document.getElementById("modal-image");
   if (qData.img) {
     imgEl.src = qData.img;
     imgEl.classList.remove("hidden");
@@ -268,132 +446,221 @@ function openQuestion(category, qData, cardId, cardEl) {
     imgEl.classList.add("hidden");
   }
 
-  ansText.classList.add("hidden");
-  btnShowAnswer.style.display = "inline-block";
   modal.classList.remove("hidden");
 
-  // Disable card and save state
-  gameState.opened.push(cardId);
-  cardEl.classList.add("disabled");
-  saveState();
-
-  startTimer(gameState.config.timer);
+  startTimer(30);
 }
 
 function startTimer(seconds) {
   clearInterval(timerInterval);
+  isPaused = false;
+  timeLeft = seconds;
+
   timerBar.style.width = "100%";
-  timerBar.style.backgroundColor = "var(--accent)";
+  timerBar.style.backgroundColor = "var(--primary)";
 
-  let timeLeft = seconds;
   timerInterval = setInterval(() => {
-    timeLeft -= 1;
-    const percentage = (timeLeft / seconds) * 100;
-    timerBar.style.width = `${percentage}%`;
+    if (!isPaused) {
+      timeLeft -= 0.1; // Hitung presisi
+      const percentage = (timeLeft / seconds) * 100;
+      timerBar.style.width = `${percentage}%`;
 
-    if (percentage <= 30) timerBar.style.backgroundColor = "var(--wrong)";
+      if (percentage <= 30) timerBar.style.backgroundColor = "var(--wrong)";
 
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      audioWrong.play();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById("audio-wrong").play();
+      }
     }
-  }, 1000);
+  }, 100);
 }
 
-btnShowAnswer.onclick = () => {
-  clearInterval(timerInterval);
-  ansText.classList.remove("hidden");
-  btnShowAnswer.style.display = "none";
-};
+function pauseTimer() {
+  isPaused = true;
+  timerBar.style.backgroundColor = "#fbbf24"; // Warna kuning pause
+  document.getElementById("controls-main").classList.add("hidden");
+  document.getElementById("controls-verify").classList.remove("hidden");
+}
 
-document.getElementById("btn-close").onclick = () => {
-  clearInterval(timerInterval);
+function resumeTimer() {
+  isPaused = false;
+  timerBar.style.backgroundColor =
+    (timeLeft / 30) * 100 > 30 ? "var(--primary)" : "var(--wrong)";
+  document.getElementById("controls-verify").classList.add("hidden");
+  document.getElementById("controls-main").classList.remove("hidden");
+}
+
+// --- FASE 4: PEMILIHAN TIM SAAT BENAR/SALAH ---
+let currentAction = ""; // 'benar' atau 'salah'
+
+function showTeamSelector(action) {
+  currentAction = action;
+  const selectorModal = document.getElementById("team-selector-modal");
+  const btnContainer = document.getElementById("team-selector-buttons");
+
+  document.getElementById("selector-title").innerText =
+    action === "benar" ? "Pilih Tim yang Benar ✅" : "Pilih Tim yang Salah ❌";
+  document.getElementById("selector-title").style.color =
+    action === "benar" ? "var(--correct)" : "var(--wrong)";
+
+  btnContainer.innerHTML = "";
+  teams.forEach((t) => {
+    btnContainer.innerHTML += `
+            <div class="team-btn" onclick="executeTeamAction(${t.id})">
+                <img src="${t.avatar}" alt="Avatar">
+                <span style="font-weight:bold; font-size:0.9rem; text-align:center;">${t.nama}</span>
+            </div>
+        `;
+  });
+
+  selectorModal.classList.remove("hidden");
+}
+
+function closeTeamSelector() {
+  document.getElementById("team-selector-modal").classList.add("hidden");
+}
+
+function executeTeamAction(teamId) {
+  closeTeamSelector();
+  const poin = currentQuestionData.qData.points;
+  const teamIndex = teams.findIndex((t) => t.id === teamId);
+
+  if (currentAction === "salah") {
+    // Kurangi Skor, mainkan suara salah, dan JALANKAN WAKTU LAGI
+    teams[teamIndex].skor -= poin;
+    document.getElementById("audio-wrong").play();
+    renderScoreboard();
+    resumeTimer();
+  } else if (currentAction === "benar") {
+    // Tambah Skor, mainkan suara benar, MATIKAN WAKTU
+    teams[teamIndex].skor += poin;
+    teams[teamIndex].menjawab += 1;
+    document.getElementById("audio-correct").play();
+    renderScoreboard();
+
+    clearInterval(timerInterval);
+
+    // Ubah tampilan modal jadi hijau dan tunjukkan jawaban
+    document.querySelector(".modal-content").classList.add("bg-success");
+    ansSection.classList.remove("hidden");
+    document.getElementById("controls-verify").classList.add("hidden");
+
+    // Berikan tombol khusus untuk menutup soal sukses
+    document.getElementById("controls-main").innerHTML = `
+            <button class="btn-primary" style="width:100%; font-size:1.5rem;" onclick="closeQuestion(true, ${teamIndex})">Selesai & Kembali ke Papan</button>
+        `;
+    document.getElementById("controls-main").classList.remove("hidden");
+  }
+}
+
+// Tutup soal (bisa karena benar, atau diskip tanpa pemenang)
+function closeQuestion(hasWinner, winningTeamIndex = null) {
   modal.classList.add("hidden");
-};
+  clearInterval(timerInterval);
 
-// Audio controls
-document.getElementById("btn-correct").onclick = () => audioCorrect.play();
-document.getElementById("btn-wrong").onclick = () => audioWrong.play();
+  // Kembalikan tombol kontrol utama seperti semula
+  document.getElementById("controls-main").innerHTML = `
+        <button id="btn-pause" class="btn-warning" onclick="pauseTimer()">⏸️ Pause (Anak Ingin Menjawab)</button>
+        <button id="btn-close-early" class="btn-secondary" onclick="closeQuestion(false)">Tutup Tanpa Pemenang</button>
+    `;
 
-// --- EDITOR LOGIC ---
-const editorForm = document.getElementById("editor-form");
+  // Tandai kotak di papan sudah dibuka
+  if (!openedQuestions.includes(currentQuestionData.cardId)) {
+    openedQuestions.push(currentQuestionData.cardId);
+    activeCardElement.classList.add("disabled");
 
-function renderEditor() {
-  editorForm.innerHTML = "";
-  gameData.forEach((cat, cIdx) => {
-    let html = `<div class="editor-category">
-            <input type="text" id="cat-${cIdx}" value="${cat.category}" style="font-size: 1.2rem; font-weight: bold; width: 100%; margin-bottom: 10px;">`;
+    // Beri lencana avatar tim yang menang
+    if (hasWinner && winningTeamIndex !== null) {
+      const badge = document.createElement("img");
+      badge.src = teams[winningTeamIndex].avatar;
+      badge.className = "team-badge";
+      activeCardElement.appendChild(badge);
+    }
+  }
 
-    cat.questions.forEach((q, qIdx) => {
-      html += `<div class="editor-q">
-                <input type="number" id="pts-${cIdx}-${qIdx}" value="${q.points}" style="width: 80px;">
-                <input type="text" id="q-${cIdx}-${qIdx}" value="${q.q}" placeholder="Pertanyaan">
-                <input type="text" id="a-${cIdx}-${qIdx}" value="${q.a}" placeholder="Jawaban">
-                <input type="text" id="img-${cIdx}-${qIdx}" value="${q.img}" placeholder="URL Gambar / Path Lokal (Opsional)">
-            </div>`;
-    });
-    html += `</div>`;
-    editorForm.innerHTML += html;
+  checkGameEnd();
+}
+
+// --- FASE 5: SKOR & PODIUM ---
+function renderScoreboard() {
+  const container = document.getElementById("scoreboard");
+  container.innerHTML = "";
+
+  teams.forEach((t, idx) => {
+    container.innerHTML += `
+            <div class="score-card">
+                <img src="${t.avatar}">
+                <h3>${t.nama}</h3>
+                <span id="display-score-${idx}">${t.skor}</span>
+                <div class="score-adjust">
+                    <button class="btn-green" onclick="adjustScore(${idx}, 100)">+100</button>
+                    <button class="btn-red" onclick="adjustScore(${idx}, -100)">-100</button>
+                </div>
+            </div>
+        `;
   });
 }
 
-function saveEditorData() {
-  for (let c = 0; c < 5; c++) {
-    gameData[c].category = document.getElementById(`cat-${c}`).value;
-    for (let q = 0; q < 5; q++) {
-      gameData[c].questions[q].points = parseInt(
-        document.getElementById(`pts-${c}-${q}`).value,
-      );
-      gameData[c].questions[q].q = document.getElementById(`q-${c}-${q}`).value;
-      gameData[c].questions[q].a = document.getElementById(`a-${c}-${q}`).value;
-      gameData[c].questions[q].img = document.getElementById(
-        `img-${c}-${q}`,
-      ).value;
-    }
-  }
-  localStorage.setItem("jeopardyData", JSON.stringify(gameData));
-  alert("Data soal berhasil disimpan!");
-  navigate("game");
+function adjustScore(teamIdx, amount) {
+  teams[teamIdx].skor += amount;
+  renderScoreboard();
 }
 
-// --- SETTINGS & UTILS ---
-function loadSettings() {
-  document.getElementById("setting-timer").value = gameState.config.timer;
-  document.getElementById("setting-teams").value = gameState.config.teams;
+function toggleScoreboard() {
+  const smodal = document.getElementById("score-modal");
+  smodal.classList.toggle("hidden");
 }
 
-function saveSettings() {
-  gameState.config.timer = parseInt(
-    document.getElementById("setting-timer").value,
-  );
-  gameState.config.teams = parseInt(
-    document.getElementById("setting-teams").value,
-  );
-  saveState();
-  alert("Pengaturan disimpan!");
-  navigate("game");
-}
-
-function saveState() {
-  localStorage.setItem("jeopardyState", JSON.stringify(gameState));
-}
-
-function resetGameProgress() {
-  if (confirm("Yakin ingin mereset skor dan membuka semua papan soal?")) {
-    gameState.scores = [0, 0, 0, 0];
-    gameState.opened = [];
-    saveState();
-    navigate("game");
+function checkGameEnd() {
+  if (openedQuestions.length >= 25) {
+    setTimeout(showPodium, 1000);
   }
 }
 
-function resetData() {
-  if (confirm("Yakin ingin mengembalikan semua soal ke setelan pabrik?")) {
-    localStorage.removeItem("jeopardyData");
-    gameData = defaultData;
-    renderEditor();
+function showPodium() {
+  document.getElementById("game").classList.remove("active");
+  document.getElementById("podium").classList.add("active");
+
+  // Urutkan tim berdasarkan skor tertinggi
+  let ranked = [...teams].sort((a, b) => b.skor - a.skor);
+
+  const stand = document.getElementById("podium-stand");
+  const others = document.getElementById("other-ranks");
+  stand.innerHTML = "";
+  others.innerHTML = "";
+
+  // Juara 2 (Kiri)
+  if (ranked[1]) stand.innerHTML += createRankElement(ranked[1], 2);
+  // Juara 1 (Tengah)
+  if (ranked[0]) stand.innerHTML += createRankElement(ranked[0], 1);
+  // Juara 3 (Kanan)
+  if (ranked[2]) stand.innerHTML += createRankElement(ranked[2], 3);
+
+  // Peringkat 4 dst
+  for (let i = 3; i < ranked.length; i++) {
+    others.innerHTML += `
+            <div class="other-rank-card">
+                <h2>#${i + 1}</h2>
+                <img src="${ranked[i].avatar}">
+                <div>
+                    <h3 style="margin:0;">${ranked[i].nama}</h3>
+                    <span style="color:var(--accent); font-weight:bold;">Skor: ${ranked[i].skor}</span>
+                </div>
+            </div>
+        `;
   }
 }
 
-// Init
-navigate("home");
+function createRankElement(teamData, rank) {
+  return `
+        <div class="podium-rank rank-${rank}">
+            <img src="${teamData.avatar}">
+            <h3>${teamData.nama}</h3>
+            <h2>${teamData.skor} Poin</h2>
+            <div class="stand">#${rank}</div>
+        </div>
+    `;
+}
+
+// Jalankan fungsi awal saat halaman dimuat
+window.onload = initLobby;
