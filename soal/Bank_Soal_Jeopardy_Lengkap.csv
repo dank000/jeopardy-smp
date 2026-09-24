@@ -1,0 +1,50 @@
+﻿⚠️ PENTING: Setelah selesai mengedit, file ini WAJIB di-Save As dengan format CSV (Comma delimited) (*.csv) sebelum diunggah ke aplikasi!;;;;
+Nama Kategori;"Poin
+(Contoh: 100, 200, 300)";"Waktu (Detik)
+(Contoh: 30, 45, 60)";Pertanyaan;Jawaban Singkat
+(Pastikan ejaan persis seperti di web);(Hanya ketik angka);(Hanya ketik angka);Siapakah nama presiden pertama RI?;Soekarno
+Wawasan Agama;100;30;Sebutkan tempat ibadah umat Hindu!;Pura
+Wawasan Agama;200;30;Apa nama kitab suci agama Buddha?;Tripitaka
+Wawasan Agama;300;30;Hari raya Nyepi merupakan hari besar umat beragama?;Hindu
+Wawasan Agama;400;30;Sebutkan tokoh agama/pemuka agama Khonghucu!;Xue Shi (Pendeta)
+Wawasan Agama;500;30;Tradisi membakar uang kertas biasanya dilakukan umat?;Khonghucu
+Bahasa Sunda;100;30;Karangan rekaan anu wangunna pondok disebut?;Carpon
+Bahasa Sunda;200;30;Saha anu ngatur jalanna hiji acara resmi?;Panata Acara (MC)
+Bahasa Sunda;300;30;Puisi heubeul anu diwengku ku pupuh disebut?;Guguritan
+Bahasa Sunda;400;30;Guru wilangan jeung guru lagu pupuh Kinanti nyaeta?;8-u, 8-i, 8-a, 8-i, 8-a, 8-i
+Bahasa Sunda;500;30;Conto tradisi Kampung Adat di Jawa Barat!;Seren Taun
+Matematika;100;30;Hasil dari 5 x 8 + 10 adalah?;50
+Matematika;200;30;Rumus luas segitiga adalah?;1/2 x alas x tinggi
+Matematika;300;30;Berapa akar kuadrat dari 144?;12
+Matematika;400;30;Jika x + 5 = 12, berapakah nilai x?;7
+Matematika;500;30;Rumus keliling lingkaran adalah?;2 x π x r (atau π x d)
+Bahasa Inggris;100;30;Apa bahasa Inggrisnya Buku?;Book
+Bahasa Inggris;200;30;Bentuk lampau (Past Tense) dari Go adalah?;Went
+Bahasa Inggris;300;30;Antonim dari kata Beautiful adalah?;Ugly
+Bahasa Inggris;400;30;Tense yang digunakan untuk kejadian yang sedang berlangsung?;Present Continuous
+Bahasa Inggris;500;30;Lengkapi: I have ... (melihat) that movie.;Seen
+Ilmu Pengetahuan Alam;100;30;Pusat tata surya kita adalah?;Matahari
+Ilmu Pengetahuan Alam;200;30;Proses tumbuhan membuat makanan sendiri disebut?;Fotosintesis
+Ilmu Pengetahuan Alam;300;30;Simbol unsur kimia untuk Air adalah?;H2O
+Ilmu Pengetahuan Alam;400;30;Alat pernapasan pada ikan adalah?;Insang
+Ilmu Pengetahuan Alam;500;30;Hukum Newton yang menjelaskan Aksi-Reaksi adalah?;Hukum Newton III
+Ilmu Pengetahuan Sosial;100;30;Ibukota negara Indonesia adalah?;Jakarta
+Ilmu Pengetahuan Sosial;200;30;Benua terluas di dunia adalah?;Benua Asia
+Ilmu Pengetahuan Sosial;300;30;Organisasi PBB yang mengurus pendidikan dan budaya?;UNESCO
+Ilmu Pengetahuan Sosial;400;30;Samudera yang mengelilingi kepulauan Indonesia?;Hindia dan Pasifik
+Ilmu Pengetahuan Sosial;500;30;Sistem tanam paksa pada zaman Belanda disebut?;Cultuurstelsel
+Dunia Game;100;30;Bahan membuat Crafting Table di Minecraft?;Wood Planks
+Dunia Game;200;30;Game MOBA populer 5v5 di HP?;Mobile Legends
+Dunia Game;300;30;Layanan hosting gratis server Minecraft?;Aternos
+Dunia Game;400;30;Karakter utama dalam game Mario Bros?;Mario
+Dunia Game;500;30;Mob boss di dimensi The End (Minecraft)?;Ender Dragon
+Jajanan Viral;100;30;Tepung kanji digulung telur?;Cilung
+Jajanan Viral;200;30;Es krim manusia salju dari Tiongkok?;Mixue
+Jajanan Viral;300;30;Bumbu utama seblak yang khas?;Kencur (Cikur)
+Jajanan Viral;400;30;Singkatan dari Basreng?;Bakso Goreng
+Jajanan Viral;500;30;Roti bakar khas Bandung dengan selai warna-warni?;Roti Bakar
+Tebak Gambar;100;30;Soal Gambar 1 (Edit teks ini nanti);Jawaban Gambar 1
+Tebak Gambar;200;30;Soal Gambar 2 (Edit teks ini nanti);Jawaban Gambar 2
+Tebak Gambar;300;30;Soal Gambar 3 (Edit teks ini nanti);Jawaban Gambar 3
+Tebak Gambar;400;30;Soal Gambar 4 (Edit teks ini nanti);Jawaban Gambar 4
+Tebak Gambar;500;30;Soal Gambar 5 (Edit teks ini nanti);Jawaban Gambar 5

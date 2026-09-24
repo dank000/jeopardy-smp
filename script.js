@@ -1,284 +1,5 @@
-const databaseSoal = [
-  {
-    id: "agm",
-    nama: "Wawasan Agama",
-    soal: [
-      {
-        points: 100,
-        q: "Sebutkan tempat ibadah umat Hindu!",
-        a: "Pura",
-        img: "",
-      },
-      {
-        points: 200,
-        q: "Apa nama kitab suci agama Buddha?",
-        a: "Tripitaka",
-        img: "",
-      },
-      {
-        points: 300,
-        q: "Hari raya Nyepi merupakan hari besar umat beragama?",
-        a: "Hindu",
-        img: "",
-      },
-      {
-        points: 400,
-        q: "Sebutkan tokoh agama/pemuka agama Khonghucu!",
-        a: "Xue Shi (Pendeta)",
-        img: "",
-      },
-      {
-        points: 500,
-        q: "Tradisi membakar uang kertas biasanya dilakukan umat?",
-        a: "Khonghucu",
-        img: "",
-      },
-    ],
-  },
-  {
-    id: "snd",
-    nama: "Bahasa Sunda",
-    soal: [
-      {
-        points: 100,
-        q: "Karangan rekaan anu wangunna pondok disebut?",
-        a: "Carpon",
-        img: "",
-      },
-      {
-        points: 200,
-        q: "Saha anu ngatur jalanna hiji acara resmi?",
-        a: "Panata Acara (MC)",
-        img: "",
-      },
-      {
-        points: 300,
-        q: "Puisi heubeul anu diwengku ku pupuh disebut?",
-        a: "Guguritan",
-        img: "",
-      },
-      {
-        points: 400,
-        q: "Guru wilangan jeung guru lagu pupuh Kinanti nyaeta?",
-        a: "8-u, 8-i, 8-a, 8-i, 8-a, 8-i",
-        img: "",
-      },
-      {
-        points: 500,
-        q: "Conto tradisi Kampung Adat di Jawa Barat!",
-        a: "Seren Taun",
-        img: "",
-      },
-    ],
-  },
-  {
-    id: "mat",
-    nama: "Matematika",
-    soal: [
-      { points: 100, q: "Hasil dari 5 x 8 + 10 adalah?", a: "50", img: "" },
-      {
-        points: 200,
-        q: "Rumus luas segitiga adalah?",
-        a: "1/2 x alas x tinggi",
-        img: "",
-      },
-      { points: 300, q: "Berapa akar kuadrat dari 144?", a: "12", img: "" },
-      {
-        points: 400,
-        q: "Jika x + 5 = 12, berapakah nilai x?",
-        a: "7",
-        img: "",
-      },
-      {
-        points: 500,
-        q: "Rumus keliling lingkaran adalah?",
-        a: "2 x π x r (atau π x d)",
-        img: "",
-      },
-    ],
-  },
-  {
-    id: "ing",
-    nama: "Bahasa Inggris",
-    soal: [
-      { points: 100, q: "Apa bahasa Inggrisnya 'Buku'?", a: "Book", img: "" },
-      {
-        points: 200,
-        q: "Bentuk lampau (Past Tense) dari 'Go' adalah?",
-        a: "Went",
-        img: "",
-      },
-      {
-        points: 300,
-        q: "Antonim dari kata 'Beautiful' adalah?",
-        a: "Ugly",
-        img: "",
-      },
-      {
-        points: 400,
-        q: "Tense yang digunakan untuk kejadian yang sedang berlangsung?",
-        a: "Present Continuous",
-        img: "",
-      },
-      {
-        points: 500,
-        q: "Lengkapi: 'I have ... (melihat) that movie.'",
-        a: "Seen",
-        img: "",
-      },
-    ],
-  },
-  {
-    id: "ipa",
-    nama: "Ilmu Pengetahuan Alam",
-    soal: [
-      {
-        points: 100,
-        q: "Pusat tata surya kita adalah?",
-        a: "Matahari",
-        img: "",
-      },
-      {
-        points: 200,
-        q: "Proses tumbuhan membuat makanan sendiri disebut?",
-        a: "Fotosintesis",
-        img: "",
-      },
-      {
-        points: 300,
-        q: "Simbol unsur kimia untuk Air adalah?",
-        a: "H2O",
-        img: "",
-      },
-      {
-        points: 400,
-        q: "Alat pernapasan pada ikan adalah?",
-        a: "Insang",
-        img: "",
-      },
-      {
-        points: 500,
-        q: "Hukum Newton yang menjelaskan Aksi-Reaksi adalah?",
-        a: "Hukum Newton III",
-        img: "",
-      },
-    ],
-  },
-  {
-    id: "ips",
-    nama: "Ilmu Pengetahuan Sosial",
-    soal: [
-      {
-        points: 100,
-        q: "Ibukota negara Indonesia adalah?",
-        a: "Jakarta",
-        img: "",
-      },
-      {
-        points: 200,
-        q: "Benua terluas di dunia adalah?",
-        a: "Benua Asia",
-        img: "",
-      },
-      {
-        points: 300,
-        q: "Organisasi PBB yang mengurus pendidikan dan budaya?",
-        a: "UNESCO",
-        img: "",
-      },
-      {
-        points: 400,
-        q: "Samudera yang mengelilingi kepulauan Indonesia?",
-        a: "Hindia dan Pasifik",
-        img: "",
-      },
-      {
-        points: 500,
-        q: "Sistem tanam paksa pada zaman Belanda disebut?",
-        a: "Cultuurstelsel",
-        img: "",
-      },
-    ],
-  },
-  {
-    id: "gam",
-    nama: "Dunia Game",
-    soal: [
-      {
-        points: 100,
-        q: "Bahan membuat Crafting Table di Minecraft?",
-        a: "Wood Planks",
-        img: "",
-      },
-      {
-        points: 200,
-        q: "Game MOBA populer 5v5 di HP?",
-        a: "Mobile Legends",
-        img: "",
-      },
-      {
-        points: 300,
-        q: "Layanan hosting gratis server Minecraft?",
-        a: "Aternos",
-        img: "",
-      },
-      {
-        points: 400,
-        q: "Karakter utama dalam game Mario Bros?",
-        a: "Mario",
-        img: "",
-      },
-      {
-        points: 500,
-        q: "Mob boss di dimensi The End (Minecraft)?",
-        a: "Ender Dragon",
-        img: "",
-      },
-    ],
-  },
-  {
-    id: "jaj",
-    nama: "Jajanan Viral",
-    soal: [
-      { points: 100, q: "Tepung kanji digulung telur?", a: "Cilung", img: "" },
-      {
-        points: 200,
-        q: "Es krim manusia salju dari Tiongkok?",
-        a: "Mixue",
-        img: "",
-      },
-      {
-        points: 300,
-        q: "Bumbu utama seblak yang khas?",
-        a: "Kencur (Cikur)",
-        img: "",
-      },
-      { points: 400, q: "Singkatan dari Basreng?", a: "Bakso Goreng", img: "" },
-      {
-        points: 500,
-        q: "Roti bakar khas Bandung dengan selai warna-warni?",
-        a: "Roti Bakar",
-        img: "",
-      },
-    ],
-  },
-  {
-    id: "tbk",
-    nama: "Tebak Gambar",
-    soal: [
-      { points: 100, q: "Gambar apakah ini?", a: "Isi gambar file", img: "" },
-      { points: 200, q: "Logo apakah ini?", a: "Isi logo", img: "" },
-      { points: 300, q: "Siluet apa ini?", a: "Nama benda", img: "" },
-      { points: 400, q: "Siapa tokoh ini?", a: "Nama tokoh", img: "" },
-      {
-        points: 500,
-        q: "Benda tradisional apa ini?",
-        a: "Nama benda",
-        img: "",
-      },
-    ],
-  },
-];
+// VARIABEL GLOBAL PENGGANTI DATABASE HARDCODE
+let databaseSoal = [];
 
 const avatars = [
   "https://i.pinimg.com/736x/84/c2/f7/84c2f7bfbe09d435133610de59600989.jpg",
@@ -303,13 +24,32 @@ let activeCardElement = null;
 
 let timerInterval;
 let timeLeft = 0;
+let defaultTimeLimit = 30; // Waktu detik bawaan
 let isPaused = false;
 let currentQuestionData = null;
+
+// --- FETCH DATA DARI MYSQL SAAT WEB DIBUKA ---
+async function fetchDatabaseSoal() {
+  try {
+    const response = await fetch("api_soal.php");
+    const data = await response.json();
+    databaseSoal = data; // Masukkan data MySQL ke variabel utama kita
+    initLobby(); // Jika berhasil memuat, baru munculkan Lobby
+  } catch (error) {
+    console.error("Gagal menyambung ke Database MySQL:", error);
+    document.getElementById("lobby-container").innerHTML =
+      `<h1 style="color:red;">🚨 KONEKSI DATABASE GAGAL!</h1><p>Pastikan MySQL XAMPP menyala dan file api_soal.php ada.</p>`;
+  }
+}
 
 // --- LOBBY ---
 function initLobby() {
   const catContainer = document.getElementById("category-options");
   if (!catContainer) return;
+
+  // Perbarui jumlah maksimal kategori acak sesuai jumlah kategori yang ada di MySQL
+  document.getElementById("random-cat-count").max = databaseSoal.length;
+
   renderCategoryCheckboxes();
   renderTeamLobby();
   renderAvatarOptions();
@@ -450,6 +190,7 @@ function renderBoard() {
 // --- MODAL SOAL & WAKTU ---
 const modal = document.getElementById("question-modal");
 const timerBar = document.getElementById("timer-progress");
+const playerAudio = document.getElementById("modal-audio-player");
 
 function openQuestion(category, qData, cardId, cardEl) {
   if (openedQuestions.includes(cardId)) return;
@@ -459,7 +200,6 @@ function openQuestion(category, qData, cardId, cardEl) {
   document.getElementById("modal-category").innerText = category;
   document.getElementById("modal-points").innerText = qData.points;
   document.getElementById("modal-question").innerText = qData.q;
-
   document.getElementById("modal-answer-big").innerText = qData.a;
 
   document.querySelector(".q-modal-layout").classList.remove("bg-success");
@@ -468,30 +208,45 @@ function openQuestion(category, qData, cardId, cardEl) {
   document.getElementById("btn-pause").classList.remove("hidden");
   document.getElementById("btn-resume").classList.add("hidden");
 
+  // Mengatur Media (Gambar & Audio) dari MySQL
   const imgEl = document.getElementById("modal-image");
-  if (qData.img) {
+  if (qData.img && qData.img !== "") {
     imgEl.src = qData.img;
     imgEl.classList.remove("hidden");
   } else {
     imgEl.classList.add("hidden");
   }
 
+  const audioContainer = document.getElementById("audio-container");
+  if (qData.audio && qData.audio !== "") {
+    playerAudio.src = qData.audio;
+    audioContainer.classList.remove("hidden");
+  } else {
+    playerAudio.src = "";
+    audioContainer.classList.add("hidden");
+  }
+
   modal.classList.remove("hidden");
-  startTimer(30);
+
+  // Mengambil batas waktu dari database, jika 0 maka paka default 30s
+  let waktuSoal = parseInt(qData.time);
+  if (isNaN(waktuSoal) || waktuSoal <= 0) waktuSoal = 30;
+  startTimer(waktuSoal);
 }
 
 function startTimer(seconds) {
   clearInterval(timerInterval);
   isPaused = false;
   timeLeft = seconds;
+  defaultTimeLimit = seconds; // Simpan durasi aslinya untuk perhitungan persentase
   timerBar.style.width = "100%";
   timerBar.style.backgroundColor = "var(--primary)";
 
   timerInterval = setInterval(() => {
     if (!isPaused) {
       timeLeft -= 0.1;
-      timerBar.style.width = `${(timeLeft / seconds) * 100}%`;
-      if ((timeLeft / seconds) * 100 <= 30)
+      timerBar.style.width = `${(timeLeft / defaultTimeLimit) * 100}%`;
+      if ((timeLeft / defaultTimeLimit) * 100 <= 30)
         timerBar.style.backgroundColor = "var(--wrong)";
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
@@ -507,12 +262,15 @@ function pauseTimer() {
   timerBar.style.backgroundColor = "#fbbf24";
   document.getElementById("btn-pause").classList.add("hidden");
   document.getElementById("btn-resume").classList.remove("hidden");
+  if (!playerAudio.paused) playerAudio.pause(); // Hentikan lagu jika ada
 }
 
 function resumeTimer() {
   isPaused = false;
   timerBar.style.backgroundColor =
-    (timeLeft / 30) * 100 > 30 ? "var(--primary)" : "var(--wrong)";
+    (timeLeft / defaultTimeLimit) * 100 > 30
+      ? "var(--primary)"
+      : "var(--wrong)";
   document.getElementById("btn-resume").classList.add("hidden");
   document.getElementById("btn-pause").classList.remove("hidden");
 }
@@ -569,6 +327,9 @@ function executeTeamAction(teamIndex) {
 function closeQuestion(hasWinner, winningTeamIndex = null) {
   modal.classList.add("hidden");
   clearInterval(timerInterval);
+  playerAudio.pause();
+  playerAudio.src = ""; // Bersihkan audio player
+
   if (!openedQuestions.includes(currentQuestionData.cardId)) {
     openedQuestions.push(currentQuestionData.cardId);
     activeCardElement.classList.add("disabled");
@@ -655,4 +416,5 @@ function createRankElement(teamData, rank, isFirst = false) {
     `;
 }
 
-window.onload = initLobby;
+// KITA PANGGIL FETCH DULU SEBELUM INISIALISASI LOBBY
+window.onload = fetchDatabaseSoal;

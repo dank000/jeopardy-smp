@@ -24,7 +24,7 @@ $version = time();
 
     <!-- LOBBY BERSIH DAN PROFESIONAL -->
     <section id="lobby" class="screen active">
-        <div class="glass-panel lobby-container">
+        <div id="lobby-container" class="glass-panel lobby-container">
             <h1 style="margin-bottom: 30px; font-size: 2.5rem; color: var(--accent);">Persiapan Permainan</h1>
             
             <div class="lobby-section">
@@ -86,6 +86,11 @@ $version = time();
             <div class="q-body custom-scroll">
                 <h1 id="modal-question">Pertanyaan</h1>
                 <img id="modal-image" src="" alt="Visual" class="hidden">
+
+                <!-- Player Audio Tambahan -->
+                <div id="audio-container" class="hidden" style="margin-top: 15px; width: 100%;">
+                    <audio id="modal-audio-player" controls style="width: 100%; border-radius: 30px;"></audio>
+                </div>
                 
                 <div class="answer-section hidden" id="answer-section">
                     <h2 id="modal-answer-big" class="answer-text">Jawaban</h2>

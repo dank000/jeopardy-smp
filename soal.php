@@ -8,15 +8,14 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     exit();
 }
 
-// 1. LOGIKA TAMBAH SOAL
+// 1. LOGIKA TAMBAH SOAL (MANUAL)
 if (isset($_POST['tambah_soal'])) {
     $id_kategori = $_POST['id_kategori'];
     $poin = $_POST['poin'];
-    $waktu = $_POST['waktu'] ? $_POST['waktu'] : 30; // Default 30 detik
+    $waktu = $_POST['waktu'] ? $_POST['waktu'] : 30; 
     $pertanyaan = mysqli_real_escape_string($conn, $_POST['pertanyaan']);
     $jawaban = mysqli_real_escape_string($conn, $_POST['jawaban']);
     
-    // Proses Upload Gambar (Opsional)
     $path_gambar = "";
     if (!empty($_FILES['gambar']['name'])) {
         $nama_gambar = time() . "_" . $_FILES['gambar']['name'];
@@ -24,7 +23,6 @@ if (isset($_POST['tambah_soal'])) {
         move_uploaded_file($_FILES['gambar']['tmp_name'], $path_gambar);
     }
 
-    // Proses Upload Audio (Opsional)
     $path_audio = "";
     if (!empty($_FILES['audio']['name'])) {
         $nama_audio = time() . "_" . $_FILES['audio']['name'];
@@ -42,7 +40,6 @@ if (isset($_POST['tambah_soal'])) {
 // 2. LOGIKA HAPUS SOAL
 if (isset($_GET['hapus'])) {
     $id = $_GET['hapus'];
-    // Hapus file fisik dari folder jika ada
     $cek_file = mysqli_query($conn, "SELECT gambar, audio FROM soal WHERE id_soal='$id'");
     $data_file = mysqli_fetch_assoc($cek_file);
     if($data_file['gambar'] && file_exists($data_file['gambar'])) { unlink($data_file['gambar']); }
@@ -52,6 +49,54 @@ if (isset($_GET['hapus'])) {
     header("Location: soal.php");
     exit();
 }
+
+// 3. LOGIKA IMPORT DATA DARI CSV
+if (isset($_POST['import_csv'])) {
+    if ($_FILES['file_csv']['name']) {
+        $filename = explode(".", $_FILES['file_csv']['name']);
+        if (end($filename) == "csv") {
+            $handle = fopen($_FILES['file_csv']['tmp_name'], "r");
+            
+            // Lewati 3 baris pertama (Banner, Header, Instruksi)
+            fgetcsv($handle, 10000, ","); 
+            fgetcsv($handle, 10000, ","); 
+            fgetcsv($handle, 10000, ","); 
+            
+            $soal_berhasil = 0;
+            while (($data = fgetcsv($handle, 10000, ",")) !== FALSE) {
+                // Pastikan kolom kategori dan pertanyaan tidak kosong
+                if(empty($data[0]) || empty($data[3])) continue; 
+
+                $nama_kategori = mysqli_real_escape_string($conn, trim($data[0]));
+                $poin = (int)trim($data[1]); // Jaring pengaman: Paksa teks aneh jadi angka
+                $waktu = (int)trim($data[2]);
+                $pertanyaan = mysqli_real_escape_string($conn, trim($data[3]));
+                $jawaban = mysqli_real_escape_string($conn, trim($data[4]));
+
+                // Validasi darurat jika angka kosong
+                if($poin == 0) $poin = 100;
+                if($waktu == 0) $waktu = 30;
+
+                // Cari ID Kategori dari MySQL
+                $cek_kat = mysqli_query($conn, "SELECT id_kategori FROM kategori WHERE nama_kategori = '$nama_kategori'");
+                if(mysqli_num_rows($cek_kat) > 0) {
+                    $row_kat = mysqli_fetch_assoc($cek_kat);
+                    $id_kat = $row_kat['id_kategori'];
+
+                    $query_insert = "INSERT INTO soal (id_kategori, poin, waktu, pertanyaan, jawaban) VALUES ('$id_kat', '$poin', '$waktu', '$pertanyaan', '$jawaban')";
+                    if(mysqli_query($conn, $query_insert)) {
+                        $soal_berhasil++;
+                    }
+                }
+            }
+            fclose($handle);
+            echo "<script>alert('Berhasil mengimpor $soal_berhasil soal!'); window.location.href='soal.php';</script>";
+            exit();
+        } else {
+            echo "<script>alert('Format file salah! Harap unggah file .csv');</script>";
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -60,7 +105,6 @@ if (isset($_GET['hapus'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bank Soal - CMS Jeopardy</title>
     <style>
-        /* Gaya dasar dari admin */
         :root { --bg-dark: #0f172a; --bg-panel: #1e293b; --primary: #3b82f6; --text: #f8fafc; --accent: #fbbf24; --danger: #ef4444; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text); display: flex; min-height: 100vh; }
@@ -75,7 +119,6 @@ if (isset($_GET['hapus'])) {
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
         .header-title { font-size: 2rem; margin-bottom: 30px; border-bottom: 2px solid #334155; padding-bottom: 10px;}
         
-        /* Form Soal */
         .form-panel { background-color: var(--bg-panel); padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #334155; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;}
         .form-group { display: flex; flex-direction: column; gap: 8px; }
@@ -97,7 +140,6 @@ if (isset($_GET['hapus'])) {
     </style>
 </head>
 <body>
-
     <aside class="sidebar">
         <h2>CMS Edukasi</h2>
         <ul class="nav-menu">
@@ -112,12 +154,21 @@ if (isset($_GET['hapus'])) {
     <main class="main-content">
         <h1 class="header-title">Bank Soal & Pengacakan</h1>
 
-        <div class="form-panel">
-            <h3 style="margin-bottom: 20px; color: var(--accent);">+ Tambah Soal Baru</h3>
+        <!-- PANEL IMPORT CSV -->
+        <div class="form-panel" style="border-color: var(--accent); background: rgba(251, 191, 36, 0.05);">
+            <h3 style="margin-bottom: 15px; color: var(--accent);">🚀 Import Masal via CSV</h3>
+            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 15px;">Unggah file <strong>.csv</strong> dari Excel Anda untuk memasukkan puluhan soal sekaligus. Pastikan ejaan nama kategori di Excel sama persis dengan yang ada di sistem.</p>
             
-            <!-- Perhatikan enctype="multipart/form-data" wajib untuk upload file -->
+            <form action="soal.php" method="POST" enctype="multipart/form-data" style="display:flex; gap:15px; align-items:center;">
+                <input type="file" name="file_csv" accept=".csv" required style="flex:1; border: 1px dashed var(--accent); padding: 15px;">
+                <button type="submit" name="import_csv" style="background: var(--accent); color: #0f172a; padding: 15px 30px;">Unggah & Proses</button>
+            </form>
+        </div>
+
+        <!-- FORM TAMBAH MANUAL -->
+        <div class="form-panel">
+            <h3 style="margin-bottom: 20px; color: #3b82f6;">+ Tambah Soal Manual</h3>
             <form action="soal.php" method="POST" enctype="multipart/form-data">
-                
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Pilih Kategori Mata Pelajaran</label>
@@ -131,7 +182,6 @@ if (isset($_GET['hapus'])) {
                             ?>
                         </select>
                     </div>
-                    
                     <div class="form-group">
                         <label>Nilai Poin (Tingkat Kesulitan)</label>
                         <select name="poin" required>
@@ -142,40 +192,32 @@ if (isset($_GET['hapus'])) {
                             <option value="500">500 Poin</option>
                         </select>
                     </div>
-
                     <div class="form-group full">
                         <label>Teks Pertanyaan</label>
                         <textarea name="pertanyaan" placeholder="Ketik pertanyaan di sini..." required></textarea>
                     </div>
-
                     <div class="form-group">
                         <label>Kunci Jawaban</label>
                         <input type="text" name="jawaban" placeholder="Kunci jawaban singkat" required>
                     </div>
-
                     <div class="form-group">
                         <label>Batas Waktu Menjawab (Detik)</label>
                         <input type="number" name="waktu" value="30" min="5" max="120" required>
                     </div>
-
                     <div class="form-group">
                         <label>Sematkan Gambar (Opsional)</label>
                         <input type="file" name="gambar" accept="image/png, image/jpeg, image/jpg">
                     </div>
-
                     <div class="form-group">
                         <label>Sematkan Audio (Opsional)</label>
                         <input type="file" name="audio" accept="audio/mp3, audio/mpeg">
                     </div>
                 </div>
-
                 <button type="submit" name="tambah_soal" class="btn-submit">Simpan ke Bank Soal</button>
             </form>
         </div>
 
         <h3 style="color: var(--accent);">Daftar Soal Tersimpan</h3>
-        <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 10px;">(Jika ada poin yang sama di kategori yang sama, sistem akan memilih salah satunya secara acak saat bermain)</p>
-        
         <table>
             <thead>
                 <tr>
@@ -189,7 +231,6 @@ if (isset($_GET['hapus'])) {
             </thead>
             <tbody>
                 <?php
-                // JOIN tabel soal dan kategori untuk mendapatkan nama kategori
                 $query = "SELECT s.*, k.nama_kategori FROM soal s JOIN kategori k ON s.id_kategori = k.id_kategori ORDER BY k.nama_kategori ASC, s.poin ASC";
                 $result = mysqli_query($conn, $query);
                 
@@ -222,6 +263,5 @@ if (isset($_GET['hapus'])) {
             </tbody>
         </table>
     </main>
-
 </body>
 </html>
