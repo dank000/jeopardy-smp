@@ -50,7 +50,15 @@ function tampilkanErrorLayarUtama(pesan) {
   }
 }
 
-// PERBAIKAN: Fungsi pemanggil Modal Custom Alert pengganti alert()
+function showCustomToast(message) {
+  const toast = document.getElementById("custom-toast");
+  document.getElementById("toast-msg").innerText = message;
+  toast.classList.add("show");
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
+}
+
 function showAlertModal(message) {
   document.getElementById("custom-alert-msg").innerText = message;
   document.getElementById("custom-alert-modal").classList.remove("hidden");
@@ -62,7 +70,6 @@ function masukLobi() {
   document.getElementById("lobby").classList.remove("hidden");
   document.getElementById("lobby").classList.add("active");
 
-  // PERBAIKAN: Menyembunyikan tombol login saat keluar dari beranda
   const btnLogin = document.getElementById("btn-login-nav");
   if (btnLogin) btnLogin.classList.add("hidden");
 }
@@ -109,7 +116,6 @@ function updateCatCount() {
 
 function randomizeCategories() {
   let count = parseInt(document.getElementById("random-cat-count").value);
-
   if (count > databaseSoal.length) {
     showAlertModal(
       `Hanya ada ${databaseSoal.length} kategori yang tersedia di sistem!`,
@@ -117,7 +123,6 @@ function randomizeCategories() {
     count = databaseSoal.length;
     document.getElementById("random-cat-count").value = count;
   }
-
   let indices = Array.from({ length: databaseSoal.length }, (_, i) => i);
   for (let i = indices.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -198,16 +203,10 @@ function startGame() {
     showAlertModal("Silakan centang minimal 1 kategori pelajaran!");
     return;
   }
-
   document.getElementById("lobby").classList.remove("active");
   document.getElementById("lobby").classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
   document.getElementById("game").classList.add("active");
-  const wrapper = document.getElementById("score-wrapper");
-  if (wrapper) {
-    wrapper.classList.remove("hidden-score");
-    document.getElementById("btn-toggle-icon").innerText = "▼";
-  }
   isGameActive = true;
   renderBoard();
   renderScoreboard();
@@ -239,8 +238,10 @@ const modal = document.getElementById("question-modal");
 const timerBar = document.getElementById("timer-progress");
 const playerAudio = document.getElementById("modal-audio-player");
 
+// --- FUNGSI DIPERBARUI: Mendeteksi apakah soal sudah pernah dibuka ---
 function openQuestion(category, qData, cardId, cardEl) {
-  if (openedQuestions.includes(cardId)) return;
+  let isAlreadyOpened = openedQuestions.includes(cardId);
+
   currentQuestionData = { qData, cardId };
   activeCardElement = cardEl;
   currentWinningTeamIndex = null;
@@ -252,8 +253,6 @@ function openQuestion(category, qData, cardId, cardEl) {
 
   document.querySelector(".q-modal-layout").classList.remove("bg-success");
   document.getElementById("answer-section").classList.add("hidden");
-  document.getElementById("btn-pause").classList.remove("hidden");
-  document.getElementById("btn-resume").classList.add("hidden");
 
   const imgEl = document.getElementById("modal-image");
   if (qData.img && qData.img !== "") {
@@ -272,9 +271,21 @@ function openQuestion(category, qData, cardId, cardEl) {
   }
 
   modal.classList.remove("hidden");
-  let waktuSoal = parseInt(qData.time);
-  if (isNaN(waktuSoal) || waktuSoal <= 0) waktuSoal = 30;
-  startTimer(waktuSoal);
+
+  // Logika Jika Soal Sudah Terjawab Sebelumnya
+  if (isAlreadyOpened) {
+    clearInterval(timerInterval);
+    document.getElementById("timer-progress").style.width = "100%";
+    document.getElementById("timer-progress").style.backgroundColor = "#64748b"; // Abu-abu menandakan nonaktif
+    document.getElementById("btn-pause").classList.add("hidden");
+    document.getElementById("btn-resume").classList.add("hidden");
+  } else {
+    document.getElementById("btn-pause").classList.remove("hidden");
+    document.getElementById("btn-resume").classList.add("hidden");
+    let waktuSoal = parseInt(qData.time);
+    if (isNaN(waktuSoal) || waktuSoal <= 0) waktuSoal = 30;
+    startTimer(waktuSoal);
+  }
 }
 
 function startTimer(seconds) {
@@ -316,8 +327,21 @@ function resumeTimer() {
   document.getElementById("btn-resume").classList.add("hidden");
   document.getElementById("btn-pause").classList.remove("hidden");
 }
+
+// --- FUNGSI DIPERBARUI: Otomatis mematikan waktu saat Tampilkan Jawaban ditekan ---
 function revealAnswer() {
   document.getElementById("answer-section").classList.remove("hidden");
+  clearInterval(timerInterval);
+  isPaused = true;
+  if (!playerAudio.paused) playerAudio.pause();
+
+  // Menghilangkan tombol Jeda/Lanjut karena sesi waktu sudah habis
+  document.getElementById("btn-pause").classList.add("hidden");
+  document.getElementById("btn-resume").classList.add("hidden");
+
+  // Mengubah bilah waktu menjadi hijau pertanda sukses/selesai
+  document.getElementById("timer-progress").style.backgroundColor =
+    "var(--success)";
 }
 
 let currentAction = "";
@@ -367,36 +391,65 @@ function manualCloseQuestion() {
   }
 }
 
+// --- FUNGSI DIPERBARUI: Membuat kartu yang sudah mati tetap bisa diklik ---
 function closeQuestion(hasWinner, winningTeamIndex = null) {
   modal.classList.add("hidden");
   clearInterval(timerInterval);
   playerAudio.pause();
   playerAudio.src = "";
+
   if (!openedQuestions.includes(currentQuestionData.cardId)) {
     openedQuestions.push(currentQuestionData.cardId);
     activeCardElement.classList.add("disabled");
-    if (hasWinner && winningTeamIndex !== null) {
-      const badge = document.createElement("img");
-      badge.src = teams[winningTeamIndex].avatar;
-      badge.style.width = "50px";
-      badge.style.height = "50px";
-      badge.style.borderRadius = "50%";
-      badge.style.marginTop = "15px";
-      badge.style.background = "#fff";
-      badge.style.border = "3px solid #10b981";
-      activeCardElement.innerHTML = "";
-      activeCardElement.appendChild(badge);
-    }
+
+    // Memaksa kartu yang transparan untuk tetap bisa merespons klik tetikus
+    activeCardElement.style.pointerEvents = "auto";
+    activeCardElement.style.cursor = "pointer";
+  }
+
+  if (hasWinner && winningTeamIndex !== null) {
+    const badge = document.createElement("img");
+    badge.src = teams[winningTeamIndex].avatar;
+    badge.style.width = "50px";
+    badge.style.height = "50px";
+    badge.style.borderRadius = "50%";
+    badge.style.marginTop = "15px";
+    badge.style.background = "#fff";
+    badge.style.border = "3px solid #10b981";
+    activeCardElement.innerHTML = "";
+    activeCardElement.appendChild(badge);
   }
   if (openedQuestions.length >= selectedCategories.length * 5)
     setTimeout(showPodium, 1500);
 }
 
+function toggleScoreboard() {
+  const modal = document.getElementById("scoreboard-modal");
+  if (modal.classList.contains("hidden")) {
+    modal.classList.remove("hidden");
+  } else {
+    modal.classList.add("hidden");
+  }
+}
+
 function renderScoreboard() {
-  const container = document.getElementById("scoreboard");
+  const container = document.getElementById("scoreboard-grid");
+  if (!container) return;
+
   container.innerHTML = "";
   teams.forEach((t, idx) => {
-    container.innerHTML += `<div class="score-card"><img src="${t.avatar}" style="background:#fff;"><div style="flex:1;"><h3 style="margin-bottom:5px;">${t.nama}</h3><span style="font-size:1.8rem;">${t.skor}</span></div><div style="display:flex; flex-direction:column; gap:8px;"><button style="background:var(--success); border:none; padding:8px 12px; border-radius:8px; color:white; font-weight:900; cursor:pointer;" onclick="adjustScore(${idx}, 100)">+100</button><button style="background:var(--wrong); border:none; padding:8px 12px; border-radius:8px; color:white; font-weight:900; cursor:pointer;" onclick="adjustScore(${idx}, -100)">-100</button></div></div>`;
+    container.innerHTML += `
+        <div style="background:#1e293b; padding:20px; border-radius:15px; border:2px solid #334155; display:flex; align-items:center; gap:15px; box-shadow:0 10px 25px rgba(0,0,0,0.3);">
+            <img src="${t.avatar}" style="width:70px; height:70px; border-radius:50%; background:#fff; border:3px solid #475569;">
+            <div style="flex:1; text-align:left;">
+                <h3 style="margin-bottom:5px; color:white; font-size:1.2rem;">${t.nama}</h3>
+                <span style="font-size:2.2rem; font-weight:900; color:var(--accent);">${t.skor}</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button style="background:var(--success); border:none; padding:10px 15px; border-radius:8px; color:white; font-weight:900; cursor:pointer;" onclick="adjustScore(${idx}, 100)">+100</button>
+                <button style="background:var(--wrong); border:none; padding:10px 15px; border-radius:8px; color:white; font-weight:900; cursor:pointer;" onclick="adjustScore(${idx}, -100)">-100</button>
+            </div>
+        </div>`;
   });
 }
 function adjustScore(teamIdx, amount) {
@@ -406,8 +459,6 @@ function adjustScore(teamIdx, amount) {
 
 function showPodium() {
   isGameActive = false;
-  const wrapper = document.getElementById("score-wrapper");
-  if (wrapper) wrapper.classList.add("hidden");
   document.getElementById("game").classList.remove("active");
   document.getElementById("game").classList.add("hidden");
   document.getElementById("podium").classList.remove("hidden");
