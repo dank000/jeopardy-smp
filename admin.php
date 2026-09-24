@@ -2,102 +2,166 @@
 session_start();
 include 'koneksi.php';
 
-// Proteksi Halaman: Jika bukan admin, tendang kembali ke halaman depan
+// Proteksi Halaman Admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     header("Location: index.php");
     exit();
 }
+
+// Hitung total kategori
+$query_kat = mysqli_query($conn, "SELECT COUNT(*) as total FROM kategori");
+$data_kat = mysqli_fetch_assoc($query_kat);
+$total_kategori = $data_kat['total'];
+
+// Hitung total bank soal
+$query_soal = mysqli_query($conn, "SELECT COUNT(*) as total FROM soal");
+$data_soal = mysqli_fetch_assoc($query_soal);
+$total_soal = $data_soal['total'];
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CMS Jeopardy - Dasbor Admin</title>
+    <title>Dasbor - Studio Kuis</title>
+    <!-- Menautkan ke gaya desain global yang baru -->
+    <link rel="stylesheet" href="assets/style.css">
+    
     <style>
-        :root {
-            --bg-dark: #0f172a; --bg-panel: #1e293b; --primary: #3b82f6; --text: #f8fafc; --accent: #fbbf24;
+        /* Gaya khusus untuk ornamen Dasbor */
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 30px; 
+            margin-bottom: 45px; 
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text); display: flex; min-height: 100vh; }
+        .stat-card { 
+            background: var(--bg-panel); 
+            padding: 35px 30px; 
+            border-radius: 16px; 
+            border: 1px solid #334155; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+        }
+        .stat-card:hover { 
+            transform: translateY(-8px); 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); 
+        }
+        .stat-info h3 { 
+            color: #94a3b8; 
+            font-size: 1.05rem; 
+            margin-bottom: 12px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px;
+        }
+        .stat-info h2 { 
+            color: white; 
+            font-size: 3rem; 
+            font-weight: 900; 
+            line-height: 1;
+        }
+        .stat-icon { 
+            font-size: 4.5rem; 
+            opacity: 0.9; 
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        }
         
-        /* SIDEBAR NAVIGASI */
-        .sidebar {
-            width: 250px; background-color: var(--bg-panel); padding: 20px;
-            border-right: 1px solid #334155; display: flex; flex-direction: column;
+        /* Panel Panduan Modern */
+        .guide-panel { 
+            background: linear-gradient(145deg, var(--bg-panel) 0%, rgba(59, 130, 246, 0.05) 100%); 
+            border-left: 6px solid var(--primary); 
+            padding: 40px; 
+            border-radius: 16px; 
+            border-top: 1px solid #334155; 
+            border-right: 1px solid #334155; 
+            border-bottom: 1px solid #334155; 
         }
-        .sidebar h2 { color: var(--accent); font-size: 1.5rem; margin-bottom: 30px; text-align: center; }
-        .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
-        .nav-menu li a {
-            text-decoration: none; color: #cbd5e1; font-weight: 600; padding: 12px 15px;
-            display: block; border-radius: 8px; transition: 0.2s;
+        .guide-panel h3 { 
+            color: white; 
+            font-size: 1.6rem; 
+            margin-bottom: 25px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
         }
-        .nav-menu li a:hover, .nav-menu li a.active {
-            background-color: var(--primary); color: white;
+        .guide-list { list-style: none; }
+        .guide-list li { 
+            margin-bottom: 20px; 
+            display: flex; 
+            gap: 20px; 
+            color: #cbd5e1; 
+            font-size: 1.1rem; 
+            line-height: 1.6; 
+            background: rgba(255,255,255,0.02);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .btn-logout {
-            background-color: #ef4444; color: white; text-align: center; padding: 12px;
-            border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: auto;
+        .guide-list li span { 
+            background: var(--primary); 
+            color: white; 
+            width: 32px; 
+            height: 32px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 50%; 
+            font-weight: bold; 
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
         }
-        
-        /* KONTEN UTAMA */
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .header-title { font-size: 2rem; margin-bottom: 10px; }
-        .header-subtitle { color: #94a3b8; margin-bottom: 30px; }
-        
-        /* KARTU STATISTIK */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;}
-        .stat-card { background-color: var(--bg-panel); padding: 25px; border-radius: 12px; border: 1px solid #334155; }
-        .stat-card h3 { color: #94a3b8; font-size: 1rem; margin-bottom: 10px; }
-        .stat-card .number { font-size: 2.5rem; font-weight: 900; color: var(--accent); }
-
-        .welcome-panel { background: linear-gradient(135deg, #1e3a8a, #1e40af); padding: 30px; border-radius: 12px; border: 1px solid #3b82f6; }
-        .welcome-panel h2 { margin-bottom: 10px; color: white; }
+        strong { color: white; }
     </style>
 </head>
 <body>
+    
+    <!-- Memanggil Sidebar Independen -->
+    <?php include 'sidebar.php'; ?>
 
-    <!-- SIDEBAR KIRI -->
-    <aside class="sidebar">
-        <h2>CMS Edukasi</h2>
-        <ul class="nav-menu">
-            <li><a href="admin.php" class="active">🏠 Dasbor</a></li>
-            <li><a href="kategori.php">📚 Kelola Kategori</a></li>
-            <li><a href="soal.php">📝 Bank Soal (Acak)</a></li>
-            <li><a href="pengaturan.php">⚙️ Pengaturan Game</a></li>
-        </ul>
-        <a href="logout.php" class="btn-logout">🚪 Keluar (Logout)</a>
-    </aside>
-
-    <!-- AREA KONTEN KANAN -->
     <main class="main-content">
-        <h1 class="header-title">Selamat Datang, Guru!</h1>
-        <p class="header-subtitle">Kelola seluruh konten permainan Jeopardy Anda di panel ini.</p>
-
-        <?php
-        // Menghitung jumlah data untuk ditampilkan di Dasbor
-        $total_kategori = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM kategori"));
-        $total_soal = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM soal"));
-        ?>
+        <div style="margin-bottom: 45px;">
+            <h1 class="header-title" style="border:none; margin-bottom: 12px; padding-bottom:0;">👋 Selamat Datang, Admin!</h1>
+            <p style="color: #94a3b8; font-size: 1.15rem;">Pantau dan kelola seluruh konten permainan interaktif Anda melalui panel kontrol ini.</p>
+        </div>
 
         <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Kategori Terdaftar</h3>
-                <div class="number"><?= $total_kategori ?></div>
+            <div class="stat-card" style="border-bottom: 5px solid var(--primary);">
+                <div class="stat-info">
+                    <h3>Total Topik Kuis</h3>
+                    <h2><?= $total_kategori ?></h2>
+                </div>
+                <div class="stat-icon">📑</div>
             </div>
-            <div class="stat-card">
-                <h3>Total Bank Soal</h3>
-                <div class="number"><?= $total_soal ?></div>
+            
+            <div class="stat-card" style="border-bottom: 5px solid var(--accent);">
+                <div class="stat-info">
+                    <h3>Total Bank Soal</h3>
+                    <h2><span style="color: var(--accent);"><?= $total_soal ?></span></h2>
+                </div>
+                <div class="stat-icon">📝</div>
             </div>
         </div>
 
-        <div class="welcome-panel">
-            <h2>Langkah Selanjutnya:</h2>
-            <p style="color: #bfdbfe; line-height: 1.6;">
-                1. Buka menu <b>Kelola Kategori</b> untuk menambahkan mata pelajaran.<br>
-                2. Buka menu <b>Bank Soal</b> untuk memasukkan pertanyaan, jawaban, batas waktu, dan gambar/audio pendukung.<br>
-                3. Sistem secara otomatis akan mengacak soal jika Anda memasukkan lebih dari 1 soal untuk nilai poin yang sama (misalnya: 3 soal di kategori Agama bernilai 100 poin).
-            </p>
+        <div class="guide-panel">
+            <h3>🚀 Panduan Singkat Penggunaan</h3>
+            <ul class="guide-list">
+                <li>
+                    <span>1</span>
+                    <div>Buka menu <strong>Topik Kuis</strong> di sebelah kiri untuk mendaftarkan mata pelajaran atau ruang lingkup pertanyaan baru.</div>
+                </li>
+                <li>
+                    <span>2</span>
+                    <div>Masuk ke menu <strong>Bank Soal (Acak)</strong> untuk mulai menginput pertanyaan, jawaban, batas waktu, serta media pendukung (gambar/audio).</div>
+                </li>
+                <li>
+                    <span>3</span>
+                    <div>Sistem akan <strong>mengacak soal secara otomatis</strong> saat permainan dimulai jika Anda memasukkan lebih dari 1 soal untuk nilai poin yang sama (misal: 3 opsi soal di topik Bahasa Inggris yang bernilai 100 poin).</div>
+                </li>
+            </ul>
         </div>
     </main>
 

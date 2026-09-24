@@ -1,0 +1,304 @@
+:root {
+  --bg-dark: #0f172a;
+  --bg-panel: #1e293b;
+  --primary: #3b82f6;
+  --text: #f8fafc;
+  --accent: #fbbf24;
+  --danger: #ef4444;
+  --success: #10b981;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, sans-serif;
+}
+
+/* KUNCI SIDEBAR: Batasi tinggi layar tepat 100% (100vh) dan matikan scroll utama browser */
+body {
+  background-color: var(--bg-dark);
+  color: var(--text);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar (ditambahkan scroll internal jika suatu saat menu bertambah hingga ke bawah layar) */
+.sidebar {
+  width: 260px;
+  background-color: var(--bg-panel);
+  padding: 30px 20px;
+  border-right: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.sidebar h2 {
+  color: white;
+  font-size: 1.8rem;
+  margin-bottom: 40px;
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.sidebar h2 span {
+  color: var(--primary);
+}
+.nav-menu {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-grow: 1;
+}
+.nav-menu li a {
+  text-decoration: none;
+  color: #94a3b8;
+  font-weight: 600;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+.nav-menu li a:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: white;
+}
+.nav-menu li a.active {
+  background-color: var(--primary);
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+.btn-logout {
+  background-color: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  text-align: center;
+  padding: 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-top: auto;
+  transition: 0.3s;
+}
+.btn-logout:hover {
+  background-color: var(--danger);
+  color: white;
+}
+
+/* Konten Utama (overflow-y: auto memastikan HANYA sisi kanan ini yang bisa di-scroll) */
+.main-content {
+  flex: 1;
+  padding: 40px 50px;
+  overflow-y: auto;
+}
+.header-title {
+  font-size: 2.2rem;
+  margin-bottom: 30px;
+  color: white;
+  font-weight: 800;
+}
+.form-panel {
+  background-color: var(--bg-panel);
+  padding: 30px;
+  border-radius: 16px;
+  margin-bottom: 35px;
+  border: 1px solid #334155;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.form-group.full {
+  grid-column: 1 / -1;
+}
+label {
+  color: #cbd5e1;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: white;
+  outline: none;
+  transition: 0.3s;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+button {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  transition: 0.2s;
+}
+.btn-submit {
+  background-color: var(--primary);
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+.btn-submit:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+/* Tombol File Custom */
+.file-upload-wrapper {
+  position: relative;
+  width: 100%;
+}
+.file-upload-wrapper input[type="file"] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.custom-file-upload {
+  display: block;
+  background: #334155;
+  color: #94a3b8;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px dashed #64748b;
+  text-align: center;
+  transition: 0.3s;
+  font-weight: 600;
+}
+.file-upload-wrapper:hover .custom-file-upload {
+  background: #475569;
+  color: white;
+  border-color: var(--accent);
+}
+
+/* Filter & Tabel */
+.filter-bar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  background: var(--bg-panel);
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #334155;
+}
+.filter-bar input,
+.filter-bar select {
+  padding: 10px;
+  border-radius: 8px;
+  background: #0f172a;
+  border: 1px solid #475569;
+  color: white;
+  flex: 1;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--bg-panel);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+th,
+td {
+  padding: 18px 20px;
+  text-align: left;
+  border-bottom: 1px solid #334155;
+}
+th {
+  background-color: #0f172a;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+.btn-action {
+  background: var(--primary);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-right: 5px;
+  font-weight: 600;
+}
+.btn-action:hover {
+  background: #2563eb;
+}
+.btn-edit {
+  background: var(--accent);
+  color: #0f172a;
+}
+.btn-edit:hover {
+  background: #f59e0b;
+}
+.btn-hapus {
+  background: transparent;
+  border: 1px solid #f87171;
+  color: #f87171;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.btn-hapus:hover {
+  background: #f87171;
+  color: #0f172a;
+}
+
+/* Toast */
+#toast-container {
+  position: fixed;
+  top: 25px;
+  left: 50%;
+  transform: translate(-50%, -150%);
+  z-index: 9999;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#toast-container.show {
+  transform: translate(-50%, 0);
+}
+.toast {
+  background: var(--bg-panel);
+  border: 1px solid #334155;
+  border-top: 4px solid var(--success);
+  color: white;
+  padding: 15px 30px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: 600;
+}
+.toast.error {
+  border-top-color: var(--danger);
+}
