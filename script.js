@@ -1,17 +1,13 @@
-// VARIABEL GLOBAL PENGGANTI DATABASE HARDCODE
 let databaseSoal = [];
-
 const avatars = [
-  "https://i.pinimg.com/736x/84/c2/f7/84c2f7bfbe09d435133610de59600989.jpg",
-  "https://i.pinimg.com/736x/77/8c/a0/778ca057ddde3db0098064beaa1d62c1.jpg",
-  "https://i.pinimg.com/736x/21/df/b8/21dfb85b4f0b2f5b4f3b5f096238381c.jpg",
-  "https://i.pinimg.com/736x/c9/a7/39/c9a739564f9b8417c8008894fb4ecb44.jpg",
-  "https://i.pinimg.com/736x/7a/a6/f3/7aa6f380be5be4e35759ed6e5f848f07.jpg",
-  "https://i.pinimg.com/736x/6c/e0/b3/6ce0b3beaf8db5f5cc1149e29a997d9f.jpg",
-  "https://i.pinimg.com/736x/44/22/0c/44220c8f58c740702d8f9c0c822e0e49.jpg",
-  "https://i.pinimg.com/736x/c2/3b/b1/c23bb1d9715a3a79d033efb3438914b1.jpg",
-  "https://i.pinimg.com/736x/6a/d2/d5/6ad2d5e2e9c708170b1338d8f763eb5d.jpg",
-  "https://i.pinimg.com/736x/d4/0b/df/d40bdf19de699c264e1d6c8b93557d34.jpg",
+  "https://robohash.org/tim1.png?set=set4",
+  "https://robohash.org/tim2.png?set=set4",
+  "https://robohash.org/tim3.png?set=set4",
+  "https://robohash.org/tim4.png?set=set4",
+  "https://robohash.org/tim5.png?set=set4",
+  "https://robohash.org/tim6.png?set=set4",
+  "https://robohash.org/tim7.png?set=set4",
+  "https://robohash.org/tim8.png?set=set4",
 ];
 
 let selectedCategories = [];
@@ -21,35 +17,74 @@ let teams = [
 ];
 let openedQuestions = [];
 let activeCardElement = null;
-
 let timerInterval;
 let timeLeft = 0;
-let defaultTimeLimit = 30; // Waktu detik bawaan
+let defaultTimeLimit = 30;
 let isPaused = false;
 let currentQuestionData = null;
+let isGameActive = false;
+let currentWinningTeamIndex = null;
 
-// --- FETCH DATA DARI MYSQL SAAT WEB DIBUKA ---
 async function fetchDatabaseSoal() {
   try {
     const response = await fetch("api_soal.php");
-    const data = await response.json();
-    databaseSoal = data; // Masukkan data MySQL ke variabel utama kita
-    initLobby(); // Jika berhasil memuat, baru munculkan Lobby
+    if (!response.ok) throw new Error(`HTTP status: ${response.status}`);
+    const textData = await response.text();
+    try {
+      databaseSoal = JSON.parse(textData);
+      initLobby();
+    } catch (e) {
+      tampilkanErrorLayarUtama(`Format data JSON dari server rusak.`);
+    }
   } catch (error) {
-    console.error("Gagal menyambung ke Database MySQL:", error);
-    document.getElementById("lobby-container").innerHTML =
-      `<h1 style="color:red;">🚨 KONEKSI DATABASE GAGAL!</h1><p>Pastikan MySQL XAMPP menyala dan file api_soal.php ada.</p>`;
+    tampilkanErrorLayarUtama(
+      `Gagal menghubungi server database. Pastikan MySQL menyala.`,
+    );
   }
 }
 
-// --- LOBBY ---
+function tampilkanErrorLayarUtama(pesan) {
+  const homeScreen = document.querySelector(".home-layout");
+  if (homeScreen) {
+    homeScreen.innerHTML = `<div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; padding: 40px; border-radius: 15px; text-align: center; max-width: 600px; z-index: 100;"><h1 style="color:#ef4444; margin-bottom: 20px; font-size: 2rem;">🚨 KONEKSI GAGAL!</h1><p style="color: white; font-size: 1.1rem;">${pesan}</p></div>`;
+  }
+}
+
+// PERBAIKAN: Fungsi pemanggil Modal Custom Alert pengganti alert()
+function showAlertModal(message) {
+  document.getElementById("custom-alert-msg").innerText = message;
+  document.getElementById("custom-alert-modal").classList.remove("hidden");
+}
+
+function masukLobi() {
+  document.getElementById("home-screen").classList.remove("active");
+  document.getElementById("home-screen").classList.add("hidden");
+  document.getElementById("lobby").classList.remove("hidden");
+  document.getElementById("lobby").classList.add("active");
+
+  // PERBAIKAN: Menyembunyikan tombol login saat keluar dari beranda
+  const btnLogin = document.getElementById("btn-login-nav");
+  if (btnLogin) btnLogin.classList.add("hidden");
+}
+
+function confirmGoHome() {
+  if (isGameActive) {
+    document.getElementById("quit-modal").classList.remove("hidden");
+  } else {
+    location.reload();
+  }
+}
+function closeQuitModal() {
+  document.getElementById("quit-modal").classList.add("hidden");
+}
+function forceQuitGame() {
+  location.reload();
+}
+
 function initLobby() {
   const catContainer = document.getElementById("category-options");
   if (!catContainer) return;
-
-  // Perbarui jumlah maksimal kategori acak sesuai jumlah kategori yang ada di MySQL
   document.getElementById("random-cat-count").max = databaseSoal.length;
-
   renderCategoryCheckboxes();
   renderTeamLobby();
   renderAvatarOptions();
@@ -74,7 +109,15 @@ function updateCatCount() {
 
 function randomizeCategories() {
   let count = parseInt(document.getElementById("random-cat-count").value);
-  if (count > databaseSoal.length) count = databaseSoal.length;
+
+  if (count > databaseSoal.length) {
+    showAlertModal(
+      `Hanya ada ${databaseSoal.length} kategori yang tersedia di sistem!`,
+    );
+    count = databaseSoal.length;
+    document.getElementById("random-cat-count").value = count;
+  }
+
   let indices = Array.from({ length: databaseSoal.length }, (_, i) => i);
   for (let i = indices.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -88,7 +131,7 @@ function renderTeamLobby() {
   const container = document.getElementById("team-inputs");
   container.innerHTML = "";
   teams.forEach((t) => {
-    container.innerHTML += `<div class="team-edit-btn" onclick="openEditTeamModal(${t.id})"><img src="${t.avatar}"><div class="team-edit-info"><h4>${t.nama}</h4><p>${t.anggota || "Tanpa anggota"}</p></div></div>`;
+    container.innerHTML += `<div class="team-edit-btn" onclick="openEditTeamModal(${t.id})"><img src="${t.avatar}" style="background:#fff;"><div class="team-edit-info"><h4>${t.nama}</h4><p>${t.anggota || "Tanpa anggota"}</p></div></div>`;
   });
 }
 
@@ -97,7 +140,7 @@ function addTeam() {
     id: Date.now(),
     nama: `Kelompok ${teams.length + 1}`,
     anggota: "",
-    avatar: avatars[Math.floor(Math.random() * avatars.length)],
+    avatar: avatars[teams.length % avatars.length],
     skor: 0,
   });
   renderTeamLobby();
@@ -120,7 +163,7 @@ function renderAvatarOptions() {
   const grid = document.getElementById("avatar-selection-grid");
   grid.innerHTML = "";
   avatars.forEach((url) => {
-    grid.innerHTML += `<img src="${url}" class="avatar-option" onclick="selectAvatar(this, '${url}')">`;
+    grid.innerHTML += `<img src="${url}" class="avatar-option" onclick="selectAvatar(this, '${url}')" style="background:#fff;">`;
   });
 }
 
@@ -132,7 +175,6 @@ function selectAvatar(el, url) {
   el.classList.add("selected");
   tempSelectedAvatar = url;
 }
-
 function saveTeamEdit() {
   const team = teams.find((t) => t.id === tempEditingTeamId);
   team.nama = document.getElementById("edit-team-name").value;
@@ -141,10 +183,9 @@ function saveTeamEdit() {
   document.getElementById("edit-team-modal").classList.add("hidden");
   renderTeamLobby();
 }
-
 function deleteTeam() {
   if (teams.length <= 2) {
-    alert("Minimal 2 tim yang bertanding.");
+    showAlertModal("Minimal harus ada 2 tim yang bertanding.");
     return;
   }
   teams = teams.filter((t) => t.id !== tempEditingTeamId);
@@ -154,21 +195,28 @@ function deleteTeam() {
 
 function startGame() {
   if (selectedCategories.length === 0) {
-    alert("Pilih minimal 1 kategori!");
+    showAlertModal("Silakan centang minimal 1 kategori pelajaran!");
     return;
   }
+
   document.getElementById("lobby").classList.remove("active");
+  document.getElementById("lobby").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
   document.getElementById("game").classList.add("active");
+  const wrapper = document.getElementById("score-wrapper");
+  if (wrapper) {
+    wrapper.classList.remove("hidden-score");
+    document.getElementById("btn-toggle-icon").innerText = "▼";
+  }
+  isGameActive = true;
   renderBoard();
   renderScoreboard();
 }
 
-// --- PAPAN PERMAINAN ---
 function renderBoard() {
   const board = document.getElementById("game-board");
   board.style.gridTemplateColumns = `repeat(${selectedCategories.length}, 1fr)`;
   board.innerHTML = "";
-
   selectedCategories.forEach((idx) => {
     board.innerHTML += `<div class="category-header">${databaseSoal[idx].nama}</div>`;
   });
@@ -187,7 +235,6 @@ function renderBoard() {
   }
 }
 
-// --- MODAL SOAL & WAKTU ---
 const modal = document.getElementById("question-modal");
 const timerBar = document.getElementById("timer-progress");
 const playerAudio = document.getElementById("modal-audio-player");
@@ -196,6 +243,7 @@ function openQuestion(category, qData, cardId, cardEl) {
   if (openedQuestions.includes(cardId)) return;
   currentQuestionData = { qData, cardId };
   activeCardElement = cardEl;
+  currentWinningTeamIndex = null;
 
   document.getElementById("modal-category").innerText = category;
   document.getElementById("modal-points").innerText = qData.points;
@@ -204,11 +252,9 @@ function openQuestion(category, qData, cardId, cardEl) {
 
   document.querySelector(".q-modal-layout").classList.remove("bg-success");
   document.getElementById("answer-section").classList.add("hidden");
-
   document.getElementById("btn-pause").classList.remove("hidden");
   document.getElementById("btn-resume").classList.add("hidden");
 
-  // Mengatur Media (Gambar & Audio) dari MySQL
   const imgEl = document.getElementById("modal-image");
   if (qData.img && qData.img !== "") {
     imgEl.src = qData.img;
@@ -216,7 +262,6 @@ function openQuestion(category, qData, cardId, cardEl) {
   } else {
     imgEl.classList.add("hidden");
   }
-
   const audioContainer = document.getElementById("audio-container");
   if (qData.audio && qData.audio !== "") {
     playerAudio.src = qData.audio;
@@ -227,8 +272,6 @@ function openQuestion(category, qData, cardId, cardEl) {
   }
 
   modal.classList.remove("hidden");
-
-  // Mengambil batas waktu dari database, jika 0 maka paka default 30s
   let waktuSoal = parseInt(qData.time);
   if (isNaN(waktuSoal) || waktuSoal <= 0) waktuSoal = 30;
   startTimer(waktuSoal);
@@ -238,10 +281,9 @@ function startTimer(seconds) {
   clearInterval(timerInterval);
   isPaused = false;
   timeLeft = seconds;
-  defaultTimeLimit = seconds; // Simpan durasi aslinya untuk perhitungan persentase
+  defaultTimeLimit = seconds;
   timerBar.style.width = "100%";
   timerBar.style.backgroundColor = "var(--primary)";
-
   timerInterval = setInterval(() => {
     if (!isPaused) {
       timeLeft -= 0.1;
@@ -250,7 +292,8 @@ function startTimer(seconds) {
         timerBar.style.backgroundColor = "var(--wrong)";
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
-        document.getElementById("audio-wrong").play();
+        const aw = document.getElementById("audio-wrong");
+        if (aw) aw.play();
         pauseTimer();
       }
     }
@@ -262,9 +305,8 @@ function pauseTimer() {
   timerBar.style.backgroundColor = "#fbbf24";
   document.getElementById("btn-pause").classList.add("hidden");
   document.getElementById("btn-resume").classList.remove("hidden");
-  if (!playerAudio.paused) playerAudio.pause(); // Hentikan lagu jika ada
+  if (!playerAudio.paused) playerAudio.pause();
 }
-
 function resumeTimer() {
   isPaused = false;
   timerBar.style.backgroundColor =
@@ -274,24 +316,20 @@ function resumeTimer() {
   document.getElementById("btn-resume").classList.add("hidden");
   document.getElementById("btn-pause").classList.remove("hidden");
 }
-
 function revealAnswer() {
   document.getElementById("answer-section").classList.remove("hidden");
 }
 
-// --- VERIFIKASI JAWABAN ---
 let currentAction = "";
 function showTeamSelector(action) {
   if (!isPaused) pauseTimer();
-
   currentAction = action;
   document.getElementById("selector-title").innerText =
     action === "benar" ? "Tim Mana yang Benar?" : "Tim Mana yang Salah?";
-
   const btnContainer = document.getElementById("team-selector-buttons");
   btnContainer.innerHTML = "";
   teams.forEach((t, idx) => {
-    btnContainer.innerHTML += `<div class="team-btn" onclick="executeTeamAction(${idx})"><img src="${t.avatar}"><span style="font-weight:bold; font-size:1.1rem; text-align:center;">${t.nama}</span></div>`;
+    btnContainer.innerHTML += `<div class="team-btn" onclick="executeTeamAction(${idx})" style="display:flex; flex-direction:column; align-items:center; background:#1e293b; padding:20px; border-radius:15px; cursor:pointer; border:2px solid #475569; transition:0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='#475569'"><img src="${t.avatar}" style="width:70px; height:70px; border-radius:50%; margin-bottom:15px; background:#fff;"><span style="font-weight:900; font-size:1.2rem; color:white; text-align:center;">${t.nama}</span></div>`;
   });
   document.getElementById("team-selector-modal").classList.remove("hidden");
 }
@@ -303,24 +341,29 @@ function closeTeamSelector() {
 function executeTeamAction(teamIndex) {
   closeTeamSelector();
   const poin = currentQuestionData.qData.points;
-
   if (currentAction === "salah") {
     teams[teamIndex].skor -= poin;
-    document.getElementById("audio-wrong").play();
+    const aw = document.getElementById("audio-wrong");
+    if (aw) aw.play();
     renderScoreboard();
     resumeTimer();
   } else if (currentAction === "benar") {
     teams[teamIndex].skor += poin;
-    document.getElementById("audio-correct").play();
+    const ac = document.getElementById("audio-correct");
+    if (ac) ac.play();
     renderScoreboard();
     clearInterval(timerInterval);
-
     document.querySelector(".q-modal-layout").classList.add("bg-success");
     revealAnswer();
+    currentWinningTeamIndex = teamIndex;
+  }
+}
 
-    setTimeout(() => {
-      closeQuestion(true, teamIndex);
-    }, 2500);
+function manualCloseQuestion() {
+  if (currentWinningTeamIndex !== null) {
+    closeQuestion(true, currentWinningTeamIndex);
+  } else {
+    closeQuestion(false);
   }
 }
 
@@ -328,15 +371,20 @@ function closeQuestion(hasWinner, winningTeamIndex = null) {
   modal.classList.add("hidden");
   clearInterval(timerInterval);
   playerAudio.pause();
-  playerAudio.src = ""; // Bersihkan audio player
-
+  playerAudio.src = "";
   if (!openedQuestions.includes(currentQuestionData.cardId)) {
     openedQuestions.push(currentQuestionData.cardId);
     activeCardElement.classList.add("disabled");
     if (hasWinner && winningTeamIndex !== null) {
       const badge = document.createElement("img");
       badge.src = teams[winningTeamIndex].avatar;
-      badge.className = "team-badge";
+      badge.style.width = "50px";
+      badge.style.height = "50px";
+      badge.style.borderRadius = "50%";
+      badge.style.marginTop = "15px";
+      badge.style.background = "#fff";
+      badge.style.border = "3px solid #10b981";
+      activeCardElement.innerHTML = "";
       activeCardElement.appendChild(badge);
     }
   }
@@ -344,43 +392,31 @@ function closeQuestion(hasWinner, winningTeamIndex = null) {
     setTimeout(showPodium, 1500);
 }
 
-// --- SKOR & PODIUM ---
 function renderScoreboard() {
   const container = document.getElementById("scoreboard");
   container.innerHTML = "";
   teams.forEach((t, idx) => {
-    container.innerHTML += `
-            <div class="score-card">
-                <img src="${t.avatar}">
-                <h3>${t.nama}</h3>
-                <span>${t.skor}</span>
-                <div class="score-adjust">
-                    <button class="btn-green" onclick="adjustScore(${idx}, 100)">+100</button>
-                    <button class="btn-red" onclick="adjustScore(${idx}, -100)">-100</button>
-                </div>
-            </div>
-        `;
+    container.innerHTML += `<div class="score-card"><img src="${t.avatar}" style="background:#fff;"><div style="flex:1;"><h3 style="margin-bottom:5px;">${t.nama}</h3><span style="font-size:1.8rem;">${t.skor}</span></div><div style="display:flex; flex-direction:column; gap:8px;"><button style="background:var(--success); border:none; padding:8px 12px; border-radius:8px; color:white; font-weight:900; cursor:pointer;" onclick="adjustScore(${idx}, 100)">+100</button><button style="background:var(--wrong); border:none; padding:8px 12px; border-radius:8px; color:white; font-weight:900; cursor:pointer;" onclick="adjustScore(${idx}, -100)">-100</button></div></div>`;
   });
 }
-
 function adjustScore(teamIdx, amount) {
   teams[teamIdx].skor += amount;
   renderScoreboard();
 }
-function toggleScoreboard() {
-  document.getElementById("score-modal").classList.toggle("hidden");
-  renderScoreboard();
-}
 
 function showPodium() {
+  isGameActive = false;
+  const wrapper = document.getElementById("score-wrapper");
+  if (wrapper) wrapper.classList.add("hidden");
   document.getElementById("game").classList.remove("active");
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("podium").classList.remove("hidden");
   document.getElementById("podium").classList.add("active");
 
   let ranked = [...teams].sort((a, b) => b.skor - a.skor);
   const stand = document.getElementById("podium-stand");
   const others = document.getElementById("other-ranks");
   const othersContainer = document.getElementById("other-ranks-container");
-
   stand.innerHTML = "";
   others.innerHTML = "";
 
@@ -391,30 +427,45 @@ function showPodium() {
   if (ranked.length > 3) {
     othersContainer.classList.remove("hidden");
     for (let i = 3; i < ranked.length; i++) {
-      others.innerHTML += `
-                <div class="other-rank-card">
-                    <h2>#${i + 1}</h2>
-                    <img src="${ranked[i].avatar}">
-                    <div class="other-text-info"><h3 style="color:white; font-size:1.2rem;">${ranked[i].nama}</h3><span style="color:var(--accent); font-weight:bold;">${ranked[i].skor} Poin</span></div>
-                </div>
-            `;
+      others.innerHTML += `<div style="background:#1e293b; padding:15px 30px; border-radius:15px; display:flex; align-items:center; gap:20px; border:2px solid #334155;"><h2 style="color:#94a3b8; margin:0;">#${i + 1}</h2><img src="${ranked[i].avatar}" style="width:60px; height:60px; border-radius:50%; background:#fff;"><div style="text-align:left;"><h3 style="color:white; margin:0 0 5px 0; font-size:1.3rem;">${ranked[i].nama}</h3><span style="color:var(--accent); font-weight:900; font-size:1.2rem;">${ranked[i].skor} Pts</span></div></div>`;
     }
   }
+
+  var duration = 15 * 1000;
+  var animationEnd = Date.now() + duration;
+  var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+  function randomInRange(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  var interval = setInterval(function () {
+    var timeLeft = animationEnd - Date.now();
+    if (timeLeft <= 0) {
+      return clearInterval(interval);
+    }
+    var particleCount = 50 * (timeLeft / duration);
+    confetti(
+      Object.assign({}, defaults, {
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      }),
+    );
+    confetti(
+      Object.assign({}, defaults, {
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      }),
+    );
+  }, 250);
 }
 
 function createRankElement(teamData, rank, isFirst = false) {
-  let crownHTML = isFirst ? `<div class="crown-emoji">👑</div>` : "";
+  let crownHTML = isFirst
+    ? `<div style="font-size:4rem; margin-bottom:-15px; z-index:10; position:relative; animation: floatApp 3s infinite;">👑</div>`
+    : "";
   let piala = rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉";
-  return `
-        <div class="podium-rank rank-${rank}">
-            ${crownHTML}
-            <img src="${teamData.avatar}">
-            <h3>${teamData.nama}</h3>
-            <h2>${teamData.skor} Pts</h2>
-            <div class="stand"><span style="font-size:2rem;">${piala}</span> <br> #${rank}</div>
-        </div>
-    `;
+  let height = rank === 1 ? "220px" : rank === 2 ? "170px" : "140px";
+  let color = rank === 1 ? "var(--accent)" : rank === 2 ? "#cbd5e1" : "#b45309";
+  return `<div style="display:flex; flex-direction:column; align-items:center; width:180px; z-index:10;">${crownHTML}<img src="${teamData.avatar}" style="width:100px; height:100px; border-radius:50%; border:5px solid ${color}; margin-bottom:15px; z-index:5; background:#fff; box-shadow: 0 10px 20px rgba(0,0,0,0.5);"><h3 style="color:white; margin-bottom:10px; font-size:1.3rem; text-align:center;">${teamData.nama}</h3><h2 style="color:${color}; margin-bottom:20px; font-size:2rem; text-shadow: 0 0 10px rgba(0,0,0,0.5);">${teamData.skor}</h2><div style="background:linear-gradient(180deg, ${color}, #0f172a); width:100%; height:${height}; border-radius:15px 15px 0 0; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:inset 0 10px 30px rgba(0,0,0,0.3); border: 2px solid ${color}; border-bottom:none;"><span style="font-size:3.5rem; filter:drop-shadow(0 5px 5px rgba(0,0,0,0.5));">${piala}</span><span style="color:#0f172a; font-size:2rem; font-weight:900;">#${rank}</span></div></div>`;
 }
 
-// KITA PANGGIL FETCH DULU SEBELUM INISIALISASI LOBBY
 window.onload = fetchDatabaseSoal;
