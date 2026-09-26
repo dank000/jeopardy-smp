@@ -8,6 +8,8 @@ $judul_game = $config['game_title'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title><?= htmlspecialchars($judul_game) ?></title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -19,8 +21,11 @@ $judul_game = $config['game_title'];
         .top-navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #334155; position: fixed; width: 100%; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .top-navbar h2 { font-size: 1.6rem; font-weight: 900; color: white; letter-spacing: 1px; cursor: pointer; transition: 0.2s; }
         .top-navbar h2:hover { opacity: 0.8; transform: scale(1.02); }
+        .nav-buttons { display: flex; align-items: center; gap: 15px; }
         .btn-admin { background: transparent; border: 2px solid #475569; color: #cbd5e1; padding: 8px 20px; border-radius: 8px; font-weight: bold; text-decoration: none; transition: 0.3s; }
         .btn-admin:hover { border-color: var(--primary); color: white; background: rgba(59, 130, 246, 0.2); }
+        .btn-fullscreen { background: transparent; border: 2px solid var(--accent); color: var(--accent); padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-fullscreen:hover { background: var(--accent); color: #0f172a; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
 
         .screen-section { display: none; padding-top: 90px; min-height: 100vh; width: 100%; padding-bottom: 50px; }
         .screen-section.active { display: block; }
@@ -42,18 +47,25 @@ $judul_game = $config['game_title'];
         .lobby-container { max-width: 950px; margin: 40px auto; background: var(--bg-panel); padding: 40px 50px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid #334155; }
         .lobby-container h2 { text-align: center; color: var(--accent); font-size: 2.2rem; margin-bottom: 40px; font-weight: 900; }
         
-        .random-group { display: flex; align-items: stretch; background: #0f172a; border-radius: 8px; overflow: hidden; border: 1px solid #334155; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
-        .random-group input { width: 50px; background: transparent; color: white; border: none; text-align: center; font-size: 1.2rem; font-weight: bold; outline: none; -moz-appearance: textfield; }
-        .random-group input::-webkit-outer-spin-button, .random-group input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .spinner-controls { display: flex; flex-direction: column; border-left: 1px solid #334155; }
-        .spinner-controls button { background: transparent; border: none; color: #94a3b8; cursor: pointer; padding: 2px 8px; font-size: 0.7rem; transition: 0.2s; }
-        .spinner-controls button:hover { background: #334155; color: white; }
-        .random-group .btn-acak-kat { background: var(--accent); color: #0f172a; border: none; padding: 0 20px; font-weight: 900; cursor: pointer; transition: 0.2s; border-left: 1px solid #334155; }
-        .random-group .btn-acak-kat:hover { background: #f59e0b; }
-
-        .cat-checkbox { display: flex; align-items: center; gap: 12px; background: #0f172a; padding: 15px; border-radius: 12px; border: 1px solid #334155; color: #e2e8f0; cursor: pointer; transition: 0.2s; font-weight: 600;}
-        .cat-checkbox:hover { border-color: var(--primary); background: #1e293b; }
+        .counter-group { display: flex; align-items: center; background: #0f172a; border-radius: 12px; border: 2px solid #334155; padding: 5px; gap: 5px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3); }
+        .counter-group .btn-spin { background: #1e293b; color: #cbd5e1; border: none; width: 35px; height: 35px; border-radius: 8px; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; line-height: 1; }
+        .counter-group .btn-spin:hover { background: var(--primary); color: white; transform: scale(1.05); }
+        .counter-group .btn-spin:active { transform: scale(0.95); }
+        .counter-group input { width: 45px; background: transparent; color: var(--accent); border: none; text-align: center; font-size: 1.4rem; font-weight: 900; outline: none; pointer-events: none; -moz-appearance: textfield; }
+        .counter-group input::-webkit-outer-spin-button, .counter-group input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         
+        .btn-acak-kat { background: var(--accent); color: #0f172a; border: none; padding: 0 25px; height: 48px; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 1rem; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(251, 191, 36, 0.3); }
+        .btn-acak-kat:hover { background: #f59e0b; transform: translateY(-2px); box-shadow: 0 8px 15px rgba(251, 191, 36, 0.5); }
+
+        .cat-checkbox { display: flex; align-items: center; gap: 15px; background: #0f172a; padding: 15px 20px; border-radius: 12px; border: 2px solid #334155; color: #94a3b8; cursor: pointer; transition: 0.3s; font-weight: 700; position: relative; }
+        .cat-checkbox input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+        .custom-check { width: 24px; height: 24px; background: #1e293b; border: 2px solid #475569; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
+        .custom-check::after { content: ''; width: 6px; height: 12px; border: solid white; border-width: 0 3px 3px 0; transform: rotate(45deg) scale(0); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .cat-checkbox:hover { border-color: #64748b; color: white; }
+        .cat-checkbox.checked-style { border-color: var(--success); background: rgba(16, 185, 129, 0.15); color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); }
+        .cat-checkbox.checked-style .custom-check { background: var(--success); border-color: var(--success); box-shadow: 0 0 10px rgba(16,185,129,0.5); }
+        .cat-checkbox.checked-style .custom-check::after { transform: rotate(45deg) scale(1); }
+
         .team-edit-btn { display: flex; align-items: center; gap: 15px; background: #0f172a; padding: 15px; border-radius: 12px; border: 1px solid #334155; cursor: pointer; transition: 0.2s; }
         .team-edit-btn:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .team-edit-btn img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #475569; }
@@ -63,11 +75,29 @@ $judul_game = $config['game_title'];
 
         #game { background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px); background-size: 50px 50px; }
         .board { display: grid; gap: 15px; padding: 20px 40px; width: 100%; max-width: 100%; margin-bottom: 50px; }
-        
         .category-header { background: linear-gradient(180deg, var(--primary), #2563eb); color: white; font-weight: 900; text-align: center; padding: 15px 10px; border-radius: 12px; font-size: 1.1rem; box-shadow: 0 6px 15px rgba(0,0,0,0.4); text-transform: uppercase; letter-spacing: 1px; }
         .card { background: linear-gradient(135deg, #1e293b, #0f172a); color: var(--accent); font-size: 2.8rem; font-weight: 900; display: flex; align-items: center; justify-content: center; height: 110px; border-radius: 12px; cursor: pointer; border: 2px solid #334155; transition: 0.2s; box-shadow: 0 8px 20px rgba(0,0,0,0.4); text-shadow: 2px 2px 5px rgba(0,0,0,0.8); }
         .card:hover { transform: scale(1.03); border-color: var(--accent); box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); z-index: 10; }
         .card.disabled { background: transparent; color: transparent; border-color: #1e293b; cursor: default; box-shadow: none; pointer-events: none; }
+
+        .scoreboard-wrapper { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .scoreboard-wrapper.hidden-score { transform: translateY(100%); }
+        .btn-toggle-score { background: var(--bg-panel); color: #cbd5e1; border: 2px solid #334155; border-bottom: none; border-radius: 10px 10px 0 0; padding: 5px 20px; cursor: pointer; font-size: 1.2rem; margin-bottom: -2px; z-index: 101; transition: 0.2s; }
+        .btn-toggle-score:hover { color: white; background: #334155; }
+        .scoreboard-wrapper.hidden-score .btn-toggle-score { transform: translateY(-100%); border-bottom: 2px solid #334155; border-radius: 10px; padding: 8px 20px; background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(5px); }
+        .scoreboard-wrapper.hidden-score .btn-toggle-score::after { content: " Tampilkan Skor"; font-size: 0.9rem; font-weight: bold; }
+
+        .scoreboard-container { display: flex; justify-content: center; gap: 20px; padding: 20px; background: linear-gradient(0deg, rgba(15,23,42,1) 0%, rgba(15,23,42,0.9) 100%); width: 100%; border-top: 1px solid #334155; backdrop-filter: blur(10px); flex-wrap: nowrap; overflow-x: auto; max-height: 130px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .scoreboard-wrapper:not(.hidden-score):hover .scoreboard-container { flex-wrap: wrap; max-height: 85vh; overflow-y: auto; overflow-x: hidden; background: rgba(15,23,42,0.98); align-content: flex-start; padding: 40px; box-shadow: 0 -10px 50px rgba(0,0,0,0.6); border-top: 2px solid var(--primary); }
+        .scoreboard-container::-webkit-scrollbar { height: 8px; width: 8px; }
+        .scoreboard-container::-webkit-scrollbar-track { background: transparent; }
+        .scoreboard-container::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .scoreboard-container::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        .score-card { pointer-events: auto; background: var(--bg-panel); padding: 12px 20px; border-radius: 15px; border: 2px solid #334155; display: flex; align-items: center; gap: 15px; flex: 1; min-width: 250px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: 0.3s; }
+        .score-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
+        .score-card img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #475569; }
+        .scoreboard-wrapper:not(.hidden-score):hover .score-card { flex: 1 1 300px; max-width: 400px; }
 
         .podium-title { font-size: 5rem; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 0 30px rgba(251, 191, 36, 0.6); margin-bottom: 70px; } 
         .podium-title span { color: var(--accent); }
@@ -105,9 +135,26 @@ $judul_game = $config['game_title'];
         <span id="toast-msg">Pesan Galat</span>
     </div>
 
+    <!-- AUDIO ELEMENTS -->
+    <audio id="bgm-lobby" src="assets/audio/bgm_lobby.mp3" loop></audio>
+    <audio id="bgm-game" src="assets/audio/bgm_game.mp3" loop></audio>
+    <audio id="bgm-podium" src="assets/audio/bgm_podium.mp3" loop></audio>
+    
+    <audio id="sfx-click" src="assets/audio/sfx_click.mp3"></audio>
+    <audio id="sfx-transition" src="assets/audio/sfx_transition.mp3"></audio>
+    <audio id="sfx-card" src="assets/audio/sfx_card.mp3"></audio>
+    <audio id="sfx-tick" src="assets/audio/sfx_tick.mp3" loop></audio>
+    <audio id="sfx-reveal" src="assets/audio/sfx_reveal.mp3"></audio>
+    <audio id="audio-correct" src="assets/audio/correct.mp3"></audio>
+    <audio id="audio-wrong" src="assets/audio/wrong.mp3"></audio>
+
     <nav class="top-navbar">
         <h2 onclick="confirmGoHome()"><?= htmlspecialchars($judul_game) ?></h2>
-        <a href="admin.php" class="btn-admin" id="btn-login-nav">Login</a>
+        <div class="nav-buttons">
+            <button class="btn-fullscreen" onclick="toggleAudio()" id="btn-audio">🔊 Musik ON</button>
+            <button class="btn-fullscreen" onclick="toggleFullScreen()" id="btn-fullscreen">⛶ Layar Penuh</button>
+            <a href="admin.php" class="btn-admin" id="btn-login-nav">Login</a>
+        </div>
     </nav>
 
     <section id="home-screen" class="screen-section active">
@@ -125,13 +172,13 @@ $judul_game = $config['game_title'];
             <div style="margin-bottom: 40px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                     <h3 style="color:white; font-size:1.3rem;">1. Pilih Kategori (<span id="cat-count">0</span>)</h3>
-                    <div class="random-group">
-                        <input type="number" id="random-cat-count" value="5" min="1" max="9" readonly>
-                        <div class="spinner-controls">
-                            <button onclick="document.getElementById('random-cat-count').stepUp()">▲</button>
-                            <button onclick="document.getElementById('random-cat-count').stepDown()">▼</button>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="counter-group">
+                            <button type="button" class="btn-spin" onclick="adjustCatCount(-1)">-</button>
+                            <input type="number" id="random-cat-count" value="5" min="1" max="9" readonly>
+                            <button type="button" class="btn-spin" onclick="adjustCatCount(1)">+</button>
                         </div>
-                        <button class="btn-acak-kat" onclick="randomizeCategories()">ACAK</button>
+                        <button class="btn-acak-kat" onclick="randomizeCategories()">ACAK KATEGORI</button>
                     </div>
                 </div>
                 <div id="category-options" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:15px;"></div>
@@ -220,7 +267,6 @@ $judul_game = $config['game_title'];
         </div>
     </div>
 
-    <!-- MODAL CUSTOM ALERT (Desain Baru Elegan) -->
     <div id="custom-alert-modal" class="q-modal-layout hidden">
         <div class="q-modal-content" style="max-width: 400px; padding: 30px;">
             <h2 style="color: var(--accent); margin-bottom: 15px; font-size: 1.6rem;">Peringatan</h2>
@@ -229,11 +275,6 @@ $judul_game = $config['game_title'];
         </div>
     </div>
 
-    <audio id="audio-correct" src="assets/audio/correct.mp3"></audio>
-    <audio id="audio-wrong" src="assets/audio/wrong.mp3"></audio>
-
-    <!-- SCRIPT JS TIDAK MENGALAMI PERUBAHAN -->
     <script src="script.js?v=<?= time(); ?>"></script>
-
 </body>
 </html>

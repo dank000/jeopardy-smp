@@ -25,6 +25,110 @@ let currentQuestionData = null;
 let isGameActive = false;
 let currentWinningTeamIndex = null;
 
+// ==========================================
+// SISTEM AUDIO (BGM & SFX)
+// ==========================================
+let audioEnabled = true;
+
+// Mendaftarkan klik SFX ke seluruh elemen interaktif
+document.addEventListener("click", (e) => {
+  if (
+    e.target.tagName === "BUTTON" ||
+    e.target.closest(".card") ||
+    e.target.closest(".cat-checkbox")
+  ) {
+    playSFX("click");
+  }
+});
+
+function toggleAudio() {
+  audioEnabled = !audioEnabled;
+  const btn = document.getElementById("btn-audio");
+  if (audioEnabled) {
+    btn.innerText = "🔊 Musik ON";
+    if (
+      document.getElementById("home-screen").classList.contains("active") ||
+      document.getElementById("lobby").classList.contains("active")
+    ) {
+      playBGM("lobby");
+    } else if (document.getElementById("game").classList.contains("active")) {
+      playBGM("game");
+    }
+  } else {
+    btn.innerText = "🔇 Musik OFF";
+    stopAllBGM();
+    stopSFX("tick");
+  }
+}
+
+function playSFX(type) {
+  if (!audioEnabled) return;
+  try {
+    let aud;
+    switch (type) {
+      case "click":
+        aud = document.getElementById("sfx-click");
+        break;
+      case "transition":
+        aud = document.getElementById("sfx-transition");
+        break;
+      case "card":
+        aud = document.getElementById("sfx-card");
+        break;
+      case "tick":
+        document.getElementById("sfx-tick").play();
+        return; // Loop timer
+      case "reveal":
+        aud = document.getElementById("sfx-reveal");
+        break;
+      case "correct":
+        aud = document.getElementById("audio-correct");
+        break;
+      case "wrong":
+        aud = document.getElementById("audio-wrong");
+        break;
+    }
+    if (aud) {
+      aud.currentTime = 0;
+      aud.play().catch((e) => console.log("Audio play di-block browser"));
+    }
+  } catch (e) {}
+}
+
+function stopSFX(type) {
+  try {
+    if (type === "tick") {
+      const t = document.getElementById("sfx-tick");
+      t.pause();
+      t.currentTime = 0;
+    }
+  } catch (e) {}
+}
+
+function playBGM(type) {
+  if (!audioEnabled) return;
+  stopAllBGM();
+  try {
+    let bgm;
+    if (type === "lobby") bgm = document.getElementById("bgm-lobby");
+    if (type === "game") bgm = document.getElementById("bgm-game");
+    if (type === "podium") bgm = document.getElementById("bgm-podium");
+    if (bgm) {
+      bgm.volume = 0.5;
+      bgm.play().catch((e) => console.log("BGM autoplay tertahan"));
+    }
+  } catch (e) {}
+}
+
+function stopAllBGM() {
+  try {
+    document.getElementById("bgm-lobby").pause();
+    document.getElementById("bgm-game").pause();
+    document.getElementById("bgm-podium").pause();
+  } catch (e) {}
+}
+// ==========================================
+
 async function fetchDatabaseSoal() {
   try {
     const response = await fetch("api_soal.php");
@@ -70,6 +174,9 @@ function masukLobi() {
   document.getElementById("lobby").classList.remove("hidden");
   document.getElementById("lobby").classList.add("active");
 
+  playSFX("transition");
+  playBGM("lobby"); // BGM mulai ketika user sudah berinteraksi
+
   const btnLogin = document.getElementById("btn-login-nav");
   if (btnLogin) btnLogin.classList.add("hidden");
 }
@@ -102,7 +209,15 @@ function renderCategoryCheckboxes() {
   catContainer.innerHTML = "";
   databaseSoal.forEach((cat, idx) => {
     const isChecked = selectedCategories.includes(idx) ? "checked" : "";
-    catContainer.innerHTML += `<label class="cat-checkbox"><input type="checkbox" value="${idx}" ${isChecked} onchange="updateCatCount()"> ${cat.nama}</label>`;
+    const activeClass = selectedCategories.includes(idx) ? "checked-style" : "";
+
+    catContainer.innerHTML += `
+            <label class="cat-checkbox ${activeClass}">
+                <input type="checkbox" value="${idx}" ${isChecked} onchange="updateCatCount()">
+                <div class="custom-check"></div>
+                <span style="flex:1;">${cat.nama}</span>
+            </label>
+        `;
   });
   updateCatCount();
 }
@@ -112,6 +227,24 @@ function updateCatCount() {
     document.querySelectorAll(".cat-checkbox input:checked"),
   ).map((cb) => parseInt(cb.value));
   document.getElementById("cat-count").innerText = selectedCategories.length;
+
+  document.querySelectorAll(".cat-checkbox").forEach((label) => {
+    const checkbox = label.querySelector("input");
+    if (checkbox && checkbox.checked) {
+      label.classList.add("checked-style");
+    } else {
+      label.classList.remove("checked-style");
+    }
+  });
+}
+
+function adjustCatCount(amount) {
+  const input = document.getElementById("random-cat-count");
+  let current = parseInt(input.value);
+  current += amount;
+  if (current < 1) current = 1;
+  if (current > databaseSoal.length) current = databaseSoal.length;
+  input.value = current;
 }
 
 function randomizeCategories() {
@@ -203,6 +336,10 @@ function startGame() {
     showAlertModal("Silakan centang minimal 1 kategori pelajaran!");
     return;
   }
+
+  playSFX("transition");
+  playBGM("game"); // Pindah ke musik game yang asik
+
   document.getElementById("lobby").classList.remove("active");
   document.getElementById("lobby").classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
@@ -238,9 +375,10 @@ const modal = document.getElementById("question-modal");
 const timerBar = document.getElementById("timer-progress");
 const playerAudio = document.getElementById("modal-audio-player");
 
-// --- FUNGSI DIPERBARUI: Mendeteksi apakah soal sudah pernah dibuka ---
 function openQuestion(category, qData, cardId, cardEl) {
   let isAlreadyOpened = openedQuestions.includes(cardId);
+
+  playSFX("card"); // Bunyi kartu ditekan
 
   currentQuestionData = { qData, cardId };
   activeCardElement = cardEl;
@@ -272,11 +410,10 @@ function openQuestion(category, qData, cardId, cardEl) {
 
   modal.classList.remove("hidden");
 
-  // Logika Jika Soal Sudah Terjawab Sebelumnya
   if (isAlreadyOpened) {
     clearInterval(timerInterval);
     document.getElementById("timer-progress").style.width = "100%";
-    document.getElementById("timer-progress").style.backgroundColor = "#64748b"; // Abu-abu menandakan nonaktif
+    document.getElementById("timer-progress").style.backgroundColor = "#64748b";
     document.getElementById("btn-pause").classList.add("hidden");
     document.getElementById("btn-resume").classList.add("hidden");
   } else {
@@ -295,6 +432,9 @@ function startTimer(seconds) {
   defaultTimeLimit = seconds;
   timerBar.style.width = "100%";
   timerBar.style.backgroundColor = "var(--primary)";
+
+  playSFX("tick"); // Memulai suara tik-tok
+
   timerInterval = setInterval(() => {
     if (!isPaused) {
       timeLeft -= 0.1;
@@ -303,8 +443,8 @@ function startTimer(seconds) {
         timerBar.style.backgroundColor = "var(--wrong)";
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
-        const aw = document.getElementById("audio-wrong");
-        if (aw) aw.play();
+        stopSFX("tick");
+        playSFX("wrong"); // Alarm waktu habis
         pauseTimer();
       }
     }
@@ -317,7 +457,9 @@ function pauseTimer() {
   document.getElementById("btn-pause").classList.add("hidden");
   document.getElementById("btn-resume").classList.remove("hidden");
   if (!playerAudio.paused) playerAudio.pause();
+  stopSFX("tick"); // Jeda waktu = Jeda detak
 }
+
 function resumeTimer() {
   isPaused = false;
   timerBar.style.backgroundColor =
@@ -326,20 +468,19 @@ function resumeTimer() {
       : "var(--wrong)";
   document.getElementById("btn-resume").classList.add("hidden");
   document.getElementById("btn-pause").classList.remove("hidden");
+  playSFX("tick"); // Lanjut waktu = Lanjut detak
 }
 
-// --- FUNGSI DIPERBARUI: Otomatis mematikan waktu saat Tampilkan Jawaban ditekan ---
 function revealAnswer() {
+  playSFX("reveal"); // Suara jawaban terbuka
   document.getElementById("answer-section").classList.remove("hidden");
   clearInterval(timerInterval);
   isPaused = true;
+  stopSFX("tick"); // Otomatis matikan detak waktu
   if (!playerAudio.paused) playerAudio.pause();
 
-  // Menghilangkan tombol Jeda/Lanjut karena sesi waktu sudah habis
   document.getElementById("btn-pause").classList.add("hidden");
   document.getElementById("btn-resume").classList.add("hidden");
-
-  // Mengubah bilah waktu menjadi hijau pertanda sukses/selesai
   document.getElementById("timer-progress").style.backgroundColor =
     "var(--success)";
 }
@@ -367,16 +508,15 @@ function executeTeamAction(teamIndex) {
   const poin = currentQuestionData.qData.points;
   if (currentAction === "salah") {
     teams[teamIndex].skor -= poin;
-    const aw = document.getElementById("audio-wrong");
-    if (aw) aw.play();
+    playSFX("wrong");
     renderScoreboard();
     resumeTimer();
   } else if (currentAction === "benar") {
     teams[teamIndex].skor += poin;
-    const ac = document.getElementById("audio-correct");
-    if (ac) ac.play();
+    playSFX("correct");
     renderScoreboard();
     clearInterval(timerInterval);
+    stopSFX("tick");
     document.querySelector(".q-modal-layout").classList.add("bg-success");
     revealAnswer();
     currentWinningTeamIndex = teamIndex;
@@ -391,18 +531,16 @@ function manualCloseQuestion() {
   }
 }
 
-// --- FUNGSI DIPERBARUI: Membuat kartu yang sudah mati tetap bisa diklik ---
 function closeQuestion(hasWinner, winningTeamIndex = null) {
   modal.classList.add("hidden");
   clearInterval(timerInterval);
+  stopSFX("tick");
   playerAudio.pause();
   playerAudio.src = "";
 
   if (!openedQuestions.includes(currentQuestionData.cardId)) {
     openedQuestions.push(currentQuestionData.cardId);
     activeCardElement.classList.add("disabled");
-
-    // Memaksa kartu yang transparan untuk tetap bisa merespons klik tetikus
     activeCardElement.style.pointerEvents = "auto";
     activeCardElement.style.cursor = "pointer";
   }
@@ -459,6 +597,10 @@ function adjustScore(teamIdx, amount) {
 
 function showPodium() {
   isGameActive = false;
+
+  playSFX("transition");
+  playBGM("podium"); // BGM Musik Kemenangan
+
   document.getElementById("game").classList.remove("active");
   document.getElementById("game").classList.add("hidden");
   document.getElementById("podium").classList.remove("hidden");
@@ -517,6 +659,28 @@ function createRankElement(teamData, rank, isFirst = false) {
   let height = rank === 1 ? "220px" : rank === 2 ? "170px" : "140px";
   let color = rank === 1 ? "var(--accent)" : rank === 2 ? "#cbd5e1" : "#b45309";
   return `<div style="display:flex; flex-direction:column; align-items:center; width:180px; z-index:10;">${crownHTML}<img src="${teamData.avatar}" style="width:100px; height:100px; border-radius:50%; border:5px solid ${color}; margin-bottom:15px; z-index:5; background:#fff; box-shadow: 0 10px 20px rgba(0,0,0,0.5);"><h3 style="color:white; margin-bottom:10px; font-size:1.3rem; text-align:center;">${teamData.nama}</h3><h2 style="color:${color}; margin-bottom:20px; font-size:2rem; text-shadow: 0 0 10px rgba(0,0,0,0.5);">${teamData.skor}</h2><div style="background:linear-gradient(180deg, ${color}, #0f172a); width:100%; height:${height}; border-radius:15px 15px 0 0; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:inset 0 10px 30px rgba(0,0,0,0.3); border: 2px solid ${color}; border-bottom:none;"><span style="font-size:3.5rem; filter:drop-shadow(0 5px 5px rgba(0,0,0,0.5));">${piala}</span><span style="color:#0f172a; font-size:2rem; font-weight:900;">#${rank}</span></div></div>`;
+}
+
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen();
+    } else if (document.documentElement.msRequestFullscreen) {
+      document.documentElement.msRequestFullscreen();
+    }
+    document.getElementById("btn-fullscreen").innerText = "🗗 Keluar Penuh";
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+    document.getElementById("btn-fullscreen").innerText = "⛶ Layar Penuh";
+  }
 }
 
 window.onload = fetchDatabaseSoal;
