@@ -10,17 +10,30 @@ const avatars = [
   "https://robohash.org/tim8.png?set=set4",
 ];
 
+const gameBGMTracks = [
+  "assets/audio/bgm_game.mp3",
+  "assets/audio/bgm_game2.mp3",
+  "assets/audio/bgm_game3.mp3",
+  "assets/audio/bgm_game4.mp3",
+  "assets/audio/bgm_game5.mp3",
+  "assets/audio/bgm_game6.mp3",
+];
+
 let selectedCategories = [];
 let teams = [
   { id: 1, nama: "Kelompok 1", anggota: "", avatar: avatars[0], skor: 0 },
   { id: 2, nama: "Kelompok 2", anggota: "", avatar: avatars[1], skor: 0 },
 ];
 let openedQuestions = [];
+let revealedQuestions = [];
 let activeCardElement = null;
 let timerInterval;
+let confettiInterval = null;
 let timeLeft = 0;
 let defaultTimeLimit = 30;
 let isPaused = false;
+let isAnswerRevealed = false;
+let isQuestionModalOpen = false; // Menandai apakah kotak soal sedang terbuka
 let currentQuestionData = null;
 let isGameActive = false;
 let currentWinningTeamIndex = null;
@@ -29,16 +42,13 @@ let currentWinningTeamIndex = null;
 // SISTEM MANAJEMEN AUDIO TERPADU (MASTER VOLUME)
 // ==========================================
 let audioEnabled = true;
-let masterVol = 0.7; // Nilai awal slider (0.0 - 1.0)
-let lastActiveVol = 0.7; // Menyimpan nilai volume sebelum di-mute
+let masterVol = 0.7;
+let lastActiveVol = 0.7;
 let currentBGMType = "lobby";
-let isTimerDucking = false;
 
-// Rasio keseimbangan otomatis agar BGM tidak menenggelamkan SFX
 function getBgmVolume() {
   if (!audioEnabled || masterVol === 0) return 0;
-  let baseBgm = masterVol * 0.45; // BGM disetel lebih lembut dari SFX
-  return isTimerDucking ? baseBgm * 0.15 : baseBgm;
+  return masterVol * 0.45;
 }
 
 function getSfxVolume() {
@@ -46,9 +56,17 @@ function getSfxVolume() {
   return masterVol;
 }
 
-// Buka kunci autoplay begitu pengguna menyentuh/mengklik bagian mana pun di layar
+function pickRandomGameBGM() {
+  const bgmGameEl = document.getElementById("bgm-game");
+  if (bgmGameEl) {
+    const randomIndex = Math.floor(Math.random() * gameBGMTracks.length);
+    bgmGameEl.src = gameBGMTracks[randomIndex];
+    bgmGameEl.load();
+  }
+}
+
 function unlockAudioOnFirstInteraction() {
-  if (audioEnabled) {
+  if (audioEnabled && !isQuestionModalOpen) {
     let activeBgm = document.getElementById(`bgm-${currentBGMType}`);
     if (activeBgm && activeBgm.paused) {
       activeBgm.volume = getBgmVolume();
@@ -63,14 +81,13 @@ document.addEventListener("keydown", unlockAudioOnFirstInteraction, {
   passive: true,
 });
 
-// Bunyi klik otomatis untuk semua elemen interaktif
 document.addEventListener("click", (e) => {
   if (
     e.target.tagName === "BUTTON" ||
-    e.target.closest(".card") ||
     e.target.closest(".cat-checkbox") ||
     e.target.closest(".team-edit-btn") ||
-    e.target.closest(".avatar-option")
+    e.target.closest(".avatar-option") ||
+    e.target.closest(".brand-home-logo")
   ) {
     playSFX("click");
   }
@@ -89,7 +106,9 @@ function updateMasterVolume(val) {
     lastActiveVol = masterVol;
     if (!audioEnabled) {
       audioEnabled = true;
-      playBGM(currentBGMType);
+      if (!isQuestionModalOpen) {
+        playBGM(currentBGMType);
+      }
     }
     muteBtn.innerText = masterVol < 0.4 ? "🔉" : "🔊";
     applyCurrentVolumes();
@@ -123,7 +142,9 @@ function toggleAudio() {
     slider.value = masterVol;
     muteBtn.innerText = masterVol < 0.4 ? "🔉" : "🔊";
     applyCurrentVolumes();
-    playBGM(currentBGMType);
+    if (!isQuestionModalOpen) {
+      playBGM(currentBGMType);
+    }
   }
 }
 
@@ -142,6 +163,7 @@ function playSFX(type) {
         aud = document.getElementById("sfx-card");
         break;
       case "tick":
+        if (isAnswerRevealed || isPaused) return;
         const t = document.getElementById("sfx-tick");
         t.volume = getSfxVolume();
         t.play().catch(() => {});
@@ -168,8 +190,10 @@ function stopSFX(type) {
   try {
     if (type === "tick") {
       const t = document.getElementById("sfx-tick");
-      t.pause();
-      t.currentTime = 0;
+      if (t) {
+        t.pause();
+        t.currentTime = 0;
+      }
     }
   } catch (e) {}
 }
@@ -187,6 +211,28 @@ function playBGM(type) {
   } catch (e) {}
 }
 
+// Pause BGM saat membuka soal agar tidak mengganggu audio soal & timer
+function pauseActiveBGM() {
+  try {
+    const bgm = document.getElementById(`bgm-${currentBGMType}`);
+    if (bgm && !bgm.paused) {
+      bgm.pause();
+    }
+  } catch (e) {}
+}
+
+// Lanjutkan BGM saat keluar dari soal kembali ke papan permainan
+function resumeActiveBGM() {
+  if (!audioEnabled || masterVol === 0 || isQuestionModalOpen) return;
+  try {
+    const bgm = document.getElementById(`bgm-${currentBGMType}`);
+    if (bgm && bgm.paused) {
+      bgm.volume = getBgmVolume();
+      bgm.play().catch(() => {});
+    }
+  } catch (e) {}
+}
+
 function stopAllBGM() {
   try {
     ["bgm-lobby", "bgm-game", "bgm-podium"].forEach((id) => {
@@ -195,9 +241,9 @@ function stopAllBGM() {
     });
   } catch (e) {}
 }
+
 // ==========================================
 
-// MODAL LOGIN
 function openLoginModal() {
   document.getElementById("login-modal").classList.remove("hidden");
 }
@@ -276,12 +322,23 @@ function initLobby() {
   const catContainer = document.getElementById("category-options");
   if (!catContainer) return;
   document.getElementById("random-cat-count").max = databaseSoal.length;
+
+  if (typeof APP_CONFIG !== "undefined" && APP_CONFIG.default_cat_count) {
+    const defCat = parseInt(APP_CONFIG.default_cat_count);
+    if (!isNaN(defCat) && defCat > 0) {
+      document.getElementById("random-cat-count").value = Math.min(
+        defCat,
+        databaseSoal.length,
+      );
+    }
+  }
+
   renderCategoryCheckboxes();
   renderTeamLobby();
   renderAvatarOptions();
 
   document.getElementById("vol-master").value = masterVol;
-  playBGM("lobby"); // Coba nyalakan sejak awal jika browser mengizinkan
+  playBGM("lobby");
 }
 
 function renderCategoryCheckboxes() {
@@ -418,6 +475,7 @@ function startGame() {
   }
 
   playSFX("transition");
+  pickRandomGameBGM();
   playBGM("game");
 
   document.getElementById("lobby").classList.remove("active");
@@ -452,13 +510,22 @@ function renderBoard() {
 }
 
 const modal = document.getElementById("question-modal");
+const modalBox = document.getElementById("question-modal-box");
 const timerBar = document.getElementById("timer-progress");
 const playerAudio = document.getElementById("modal-audio-player");
 
 function openQuestion(category, qData, cardId, cardEl) {
-  let isAlreadyOpened = openedQuestions.includes(cardId);
+  let isAlreadyOpened =
+    openedQuestions.includes(cardId) || revealedQuestions.includes(cardId);
 
-  if (!isAlreadyOpened) playSFX("card");
+  isQuestionModalOpen = true;
+  pauseActiveBGM(); // Otomatis pause BGM saat soal dibuka agar tidak mengganggu audio soal
+  playSFX("card");
+
+  cardEl.classList.add("flipping");
+  setTimeout(() => {
+    cardEl.classList.remove("flipping");
+  }, 320);
 
   currentQuestionData = { qData, cardId };
   activeCardElement = cardEl;
@@ -470,7 +537,6 @@ function openQuestion(category, qData, cardId, cardEl) {
   document.getElementById("modal-answer-big").innerText = qData.a;
 
   document.querySelector(".q-modal-layout").classList.remove("bg-success");
-  document.getElementById("answer-section").classList.add("hidden");
 
   const imgEl = document.getElementById("modal-image");
   if (qData.img && qData.img !== "") {
@@ -488,15 +554,31 @@ function openQuestion(category, qData, cardId, cardEl) {
     audioContainer.classList.add("hidden");
   }
 
+  if (modalBox) {
+    modalBox.classList.remove("flip-animate");
+    void modalBox.offsetWidth;
+    modalBox.classList.add("flip-animate");
+  }
+
   modal.classList.remove("hidden");
 
   if (isAlreadyOpened) {
+    isAnswerRevealed = true;
+    isPaused = true;
     clearInterval(timerInterval);
+    stopSFX("tick");
+
     document.getElementById("timer-progress").style.width = "100%";
-    document.getElementById("timer-progress").style.backgroundColor = "#64748b";
+    document.getElementById("timer-progress").style.backgroundColor =
+      "var(--success)";
     document.getElementById("btn-pause").classList.add("hidden");
     document.getElementById("btn-resume").classList.add("hidden");
+    document.getElementById("btn-reveal-answer").classList.add("hidden");
+    document.getElementById("answer-section").classList.remove("hidden");
   } else {
+    isAnswerRevealed = false;
+    document.getElementById("answer-section").classList.add("hidden");
+    document.getElementById("btn-reveal-answer").classList.remove("hidden");
     document.getElementById("btn-pause").classList.remove("hidden");
     document.getElementById("btn-resume").classList.add("hidden");
     let waktuSoal = parseInt(qData.time);
@@ -507,18 +589,18 @@ function openQuestion(category, qData, cardId, cardEl) {
 
 function startTimer(seconds) {
   clearInterval(timerInterval);
+  stopSFX("tick");
   isPaused = false;
+  isAnswerRevealed = false;
   timeLeft = seconds;
   defaultTimeLimit = seconds;
   timerBar.style.width = "100%";
   timerBar.style.backgroundColor = "var(--primary)";
 
-  isTimerDucking = true;
-  applyCurrentVolumes();
   playSFX("tick");
 
   timerInterval = setInterval(() => {
-    if (!isPaused) {
+    if (!isPaused && !isAnswerRevealed) {
       timeLeft -= 0.1;
       timerBar.style.width = `${(timeLeft / defaultTimeLimit) * 100}%`;
       if ((timeLeft / defaultTimeLimit) * 100 <= 30)
@@ -535,17 +617,18 @@ function startTimer(seconds) {
 
 function pauseTimer() {
   isPaused = true;
-  timerBar.style.backgroundColor = "#fbbf24";
-  document.getElementById("btn-pause").classList.add("hidden");
-  document.getElementById("btn-resume").classList.remove("hidden");
-  if (!playerAudio.paused) playerAudio.pause();
   stopSFX("tick");
 
-  isTimerDucking = false;
-  applyCurrentVolumes();
+  if (!isAnswerRevealed) {
+    timerBar.style.backgroundColor = "#fbbf24";
+    document.getElementById("btn-pause").classList.add("hidden");
+    document.getElementById("btn-resume").classList.remove("hidden");
+  }
+  if (!playerAudio.paused) playerAudio.pause();
 }
 
 function resumeTimer() {
+  if (isAnswerRevealed) return;
   isPaused = false;
   timerBar.style.backgroundColor =
     (timeLeft / defaultTimeLimit) * 100 > 30
@@ -554,22 +637,28 @@ function resumeTimer() {
   document.getElementById("btn-resume").classList.add("hidden");
   document.getElementById("btn-pause").classList.remove("hidden");
   playSFX("tick");
-
-  isTimerDucking = true;
-  applyCurrentVolumes();
 }
 
-function revealAnswer() {
-  playSFX("reveal");
-  document.getElementById("answer-section").classList.remove("hidden");
-  clearInterval(timerInterval);
+function revealAnswer(silent = false) {
+  if (!silent && !isAnswerRevealed) {
+    playSFX("reveal");
+  }
+  isAnswerRevealed = true;
   isPaused = true;
+  clearInterval(timerInterval);
   stopSFX("tick");
+
+  if (
+    currentQuestionData &&
+    !revealedQuestions.includes(currentQuestionData.cardId)
+  ) {
+    revealedQuestions.push(currentQuestionData.cardId);
+  }
+
   if (!playerAudio.paused) playerAudio.pause();
 
-  isTimerDucking = false;
-  applyCurrentVolumes();
-
+  document.getElementById("answer-section").classList.remove("hidden");
+  document.getElementById("btn-reveal-answer").classList.add("hidden");
   document.getElementById("btn-pause").classList.add("hidden");
   document.getElementById("btn-resume").classList.add("hidden");
   document.getElementById("timer-progress").style.backgroundColor =
@@ -578,7 +667,10 @@ function revealAnswer() {
 
 let currentAction = "";
 function showTeamSelector(action) {
-  if (!isPaused) pauseTimer();
+  clearInterval(timerInterval);
+  stopSFX("tick");
+  isPaused = true;
+
   currentAction = action;
   document.getElementById("selector-title").innerText =
     action === "benar" ? "Tim Mana yang Benar?" : "Tim Mana yang Salah?";
@@ -596,20 +688,27 @@ function closeTeamSelector() {
 
 function executeTeamAction(teamIndex) {
   closeTeamSelector();
+  clearInterval(timerInterval);
+  stopSFX("tick");
+
   const poin = currentQuestionData.qData.points;
   if (currentAction === "salah") {
-    teams[teamIndex].skor -= poin;
+    // Cek apakah penalti salah diaktifkan di menu Pengaturan
+    const isPenalti =
+      typeof APP_CONFIG !== "undefined" && APP_CONFIG.penalti_salah === "tidak"
+        ? false
+        : true;
+    if (isPenalti) {
+      teams[teamIndex].skor -= poin;
+    }
     playSFX("wrong");
     renderScoreboard();
-    resumeTimer();
   } else if (currentAction === "benar") {
     teams[teamIndex].skor += poin;
     playSFX("correct");
     renderScoreboard();
-    clearInterval(timerInterval);
-    stopSFX("tick");
     document.querySelector(".q-modal-layout").classList.add("bg-success");
-    revealAnswer();
+    revealAnswer(true);
     currentWinningTeamIndex = teamIndex;
   }
 }
@@ -624,12 +723,11 @@ function manualCloseQuestion() {
 
 function closeQuestion(hasWinner, winningTeamIndex = null) {
   modal.classList.add("hidden");
+  isQuestionModalOpen = false;
   clearInterval(timerInterval);
   stopSFX("tick");
   playerAudio.pause();
   playerAudio.src = "";
-  isTimerDucking = false;
-  applyCurrentVolumes();
 
   if (!openedQuestions.includes(currentQuestionData.cardId)) {
     openedQuestions.push(currentQuestionData.cardId);
@@ -644,14 +742,18 @@ function closeQuestion(hasWinner, winningTeamIndex = null) {
     badge.style.width = "50px";
     badge.style.height = "50px";
     badge.style.borderRadius = "50%";
-    badge.style.marginTop = "15px";
     badge.style.background = "#fff";
     badge.style.border = "3px solid #10b981";
     activeCardElement.innerHTML = "";
     activeCardElement.appendChild(badge);
   }
-  if (openedQuestions.length >= selectedCategories.length * 5)
+
+  // Jika semua soal sudah terbuka, menuju podium; jika belum, lanjutkan BGM Game
+  if (openedQuestions.length >= selectedCategories.length * 5) {
     setTimeout(showPodium, 1500);
+  } else {
+    resumeActiveBGM();
+  }
 }
 
 function toggleScoreboard() {
@@ -690,6 +792,8 @@ function adjustScore(teamIdx, amount) {
 
 function showPodium() {
   isGameActive = false;
+  isQuestionModalOpen = false;
+  stopSFX("tick");
   playSFX("transition");
   playBGM("podium");
 
@@ -716,31 +820,29 @@ function showPodium() {
     }
   }
 
-  var duration = 15 * 1000;
-  var animationEnd = Date.now() + duration;
+  if (confettiInterval) clearInterval(confettiInterval);
   var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
   function randomInRange(min, max) {
     return Math.random() * (max - min) + min;
   }
-  var interval = setInterval(function () {
-    var timeLeft = animationEnd - Date.now();
-    if (timeLeft <= 0) {
-      return clearInterval(interval);
+  confettiInterval = setInterval(function () {
+    if (!document.getElementById("podium").classList.contains("active")) {
+      clearInterval(confettiInterval);
+      return;
     }
-    var particleCount = 50 * (timeLeft / duration);
     confetti(
       Object.assign({}, defaults, {
-        particleCount,
+        particleCount: 25,
         origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
       }),
     );
     confetti(
       Object.assign({}, defaults, {
-        particleCount,
+        particleCount: 25,
         origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
       }),
     );
-  }, 250);
+  }, 450);
 }
 
 function createRankElement(teamData, rank, isFirst = false) {
@@ -753,7 +855,6 @@ function createRankElement(teamData, rank, isFirst = false) {
   return `<div style="display:flex; flex-direction:column; align-items:center; width:180px; z-index:10;">${crownHTML}<img src="${teamData.avatar}" style="width:100px; height:100px; border-radius:50%; border:5px solid ${color}; margin-bottom:15px; z-index:5; background:#fff; box-shadow: 0 10px 20px rgba(0,0,0,0.5);"><h3 style="color:white; margin-bottom:10px; font-size:1.3rem; text-align:center;">${teamData.nama}</h3><h2 style="color:${color}; margin-bottom:20px; font-size:2rem; text-shadow: 0 0 10px rgba(0,0,0,0.5);">${teamData.skor}</h2><div style="background:linear-gradient(180deg, ${color}, #0f172a); width:100%; height:${height}; border-radius:15px 15px 0 0; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:inset 0 10px 30px rgba(0,0,0,0.3); border: 2px solid ${color}; border-bottom:none;"><span style="font-size:3.5rem; filter:drop-shadow(0 5px 5px rgba(0,0,0,0.5));">${piala}</span><span style="color:#0f172a; font-size:2rem; font-weight:900;">#${rank}</span></div></div>`;
 }
 
-// PERBAIKAN: Hanya menampilkan simbol tanpa teks
 function toggleFullScreen() {
   const btn = document.getElementById("btn-fullscreen");
   if (!document.fullscreenElement) {

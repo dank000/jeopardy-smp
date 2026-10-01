@@ -1,7 +1,16 @@
 <?php
 session_start();
 $config_file = 'config.json';
-$config = file_exists($config_file) ? json_decode(file_get_contents($config_file), true) : ['game_title' => 'Jeopardy Edukasi'];
+$default_cfg = [
+    'admin_title' => 'Studio Kuis',
+    'game_title' => 'Jeopardy Edukasi',
+    'penalti_salah' => 'ya',
+    'default_cat_count' => 5,
+    'default_waktu_soal' => 30
+];
+$config = file_exists($config_file) 
+    ? array_merge($default_cfg, json_decode(file_get_contents($config_file), true)) 
+    : $default_cfg;
 $judul_game = $config['game_title'];
 $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
 ?>
@@ -20,26 +29,52 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text); overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
         
-        .top-navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #334155; position: fixed; width: 100%; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .top-navbar h2 { font-size: 1.6rem; font-weight: 900; color: white; letter-spacing: 1px; cursor: pointer; transition: 0.2s; }
-        .top-navbar h2:hover { opacity: 0.8; transform: scale(1.02); }
+        .top-navbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 40px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #334155; position: fixed; width: 100%; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        
+        .brand-home-logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 2px solid rgba(251, 191, 36, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.25);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        .brand-home-logo:hover {
+            transform: translateY(-2px) scale(1.06);
+            border-color: var(--accent);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.45), 0 0 15px rgba(59, 130, 246, 0.6);
+        }
+        .brand-home-logo svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+        }
+
         .nav-buttons { display: flex; align-items: center; gap: 12px; }
         
         .btn-admin { background: transparent; border: 2px solid #475569; color: #cbd5e1; padding: 8px 20px; border-radius: 10px; font-weight: bold; text-decoration: none; cursor: pointer; font-size: 0.95rem; transition: 0.3s; }
         .btn-admin:hover { border-color: var(--primary); color: white; background: rgba(59, 130, 246, 0.2); }
         
-        /* PERBAIKAN: Tombol Layar Penuh Hanya Simbol Ikon */
         .btn-icon-nav { background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; color: var(--accent); width: 42px; height: 42px; border-radius: 10px; font-size: 1.25rem; font-weight: bold; cursor: pointer; transition: 0.25s; display: flex; align-items: center; justify-content: center; line-height: 1; }
         .btn-icon-nav:hover { background: var(--accent); color: #0f172a; border-color: var(--accent); box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
 
-        /* PERBAIKAN: Kontrol Volume Tunggal Modern */
         .volume-control { display: flex; align-items: center; gap: 10px; background: rgba(30, 41, 59, 0.7); padding: 6px 14px; border-radius: 10px; border: 1px solid #334155; height: 42px; }
         .btn-vol-icon { background: transparent; border: none; color: white; font-size: 1.15rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px; transition: 0.2s; line-height: 1; }
         .btn-vol-icon:hover { transform: scale(1.15); color: var(--accent); }
         .volume-control input[type=range] { width: 85px; accent-color: var(--accent); cursor: pointer; height: 6px; border-radius: 5px; outline: none; }
 
-        /* Animasi Klik Interaktif */
-        button:active, .cat-checkbox:active, .card:active, .team-edit-btn:active, .btn-acak-kat:active, .btn-play-massive:active { 
+        button:active, .cat-checkbox:active, .team-edit-btn:active, .btn-acak-kat:active, .btn-play-massive:active, .brand-home-logo:active { 
             transform: scale(0.95) !important; 
             transition: transform 0.1s !important; 
         }
@@ -67,7 +102,7 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
         .counter-group { display: flex; align-items: center; background: #0f172a; border-radius: 12px; border: 2px solid #334155; padding: 5px; gap: 5px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3); }
         .counter-group .btn-spin { background: #1e293b; color: #cbd5e1; border: none; width: 35px; height: 35px; border-radius: 8px; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; line-height: 1; }
         .counter-group .btn-spin:hover { background: var(--primary); color: white; transform: scale(1.05); }
-        .counter-group input { width: 45px; background: transparent; color: var(--accent); border: none; text-align: center; font-size: 1.4rem; font-weight: 900; outline: none; pointer-events: none; -moz-appearance: textfield; }
+        .counter-group input { width: 45px; background: transparent; color: var(--accent); border: none; text-align: center; font-size: 1.4rem; font-weight: 900; outline: none; pointer-events: none; -moz-appearance: textfield; appearance: textfield; }
         .counter-group input::-webkit-outer-spin-button, .counter-group input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         
         .btn-acak-kat { background: var(--accent); color: #0f172a; border: none; padding: 0 25px; height: 48px; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 1rem; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(251, 191, 36, 0.3); }
@@ -90,9 +125,8 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
         .avatar-option.selected { border-color: var(--primary); opacity: 1; transform: scale(1.15); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
 
         #game { background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px); background-size: 50px 50px; }
-        .board { display: grid; gap: 15px; padding: 20px 40px; width: 100%; max-width: 100%; margin-bottom: 50px; }
+        .board { display: grid; gap: 15px; padding: 20px 40px; width: 100%; max-width: 100%; margin-bottom: 50px; perspective: 1200px; }
         
-        /* PERBAIKAN: Judul Kategori Rata Tengah Vertikal & Horizontal meski panjang */
         .category-header { 
             background: linear-gradient(180deg, var(--primary), #2563eb); 
             color: white; 
@@ -111,20 +145,124 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
             line-height: 1.3;
         }
         
-        .card { background: linear-gradient(135deg, #1e293b, #0f172a); color: var(--accent); font-size: 2.8rem; font-weight: 900; display: flex; align-items: center; justify-content: center; height: 110px; border-radius: 12px; cursor: pointer; border: 2px solid #334155; transition: 0.2s; box-shadow: 0 8px 20px rgba(0,0,0,0.4); text-shadow: 2px 2px 5px rgba(0,0,0,0.8); }
+        .card { background: linear-gradient(135deg, #1e293b, #0f172a); color: var(--accent); font-size: 2.8rem; font-weight: 900; display: flex; align-items: center; justify-content: center; height: 110px; border-radius: 12px; cursor: pointer; border: 2px solid #334155; transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s, box-shadow 0.2s; box-shadow: 0 8px 20px rgba(0,0,0,0.4); text-shadow: 2px 2px 5px rgba(0,0,0,0.8); transform-style: preserve-3d; }
         .card:hover { transform: scale(1.03); border-color: var(--accent); box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); z-index: 10; }
-        .card.disabled { background: transparent; color: transparent; border-color: #1e293b; box-shadow: none; }
+        .card.flipping { transform: rotateY(90deg) scale(1.05); }
+        .card.disabled { background: rgba(15, 23, 42, 0.45); color: #475569; border-color: #1e293b; box-shadow: none; text-shadow: none; }
+        .card.disabled:hover { border-color: #475569; transform: scale(1.02); }
 
-        .podium-title { font-size: 5rem; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 0 30px rgba(251, 191, 36, 0.6); margin-bottom: 70px; } 
+        @keyframes modalFlipOpen {
+            0% { transform: perspective(1200px) rotateY(-85deg) scale(0.85); opacity: 0; }
+            60% { transform: perspective(1200px) rotateY(8deg) scale(1.02); opacity: 1; }
+            100% { transform: perspective(1200px) rotateY(0deg) scale(1); opacity: 1; }
+        }
+        .q-modal-content.flip-animate {
+            animation: modalFlipOpen 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .podium-title { 
+            font-size: 3.4rem; 
+            font-weight: 900; 
+            color: white; 
+            text-transform: uppercase; 
+            letter-spacing: 3px; 
+            text-shadow: 0 0 30px rgba(251, 191, 36, 0.5); 
+            margin-top: 0;
+            margin-bottom: 50px; 
+        } 
         .podium-title span { color: var(--accent); }
+        
+        #podium-stand {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 30px;
+            margin-top: 30px;
+            padding-top: 20px;
+            min-height: 440px;
+        }
 
         .q-modal-layout { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(8px); }
-        .q-modal-content { background: var(--bg-panel); padding: 50px; border-radius: 25px; max-width: 800px; width: 100%; text-align: center; border: 2px solid var(--primary); box-shadow: 0 25px 60px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; }
-        .timer-bar { width: 100%; height: 15px; background: #0f172a; border-radius: 10px; overflow: hidden; margin: 30px 0; border: 1px solid #334155;}
+        .q-modal-content { background: var(--bg-panel); padding: 45px 50px; border-radius: 25px; max-width: 800px; width: 100%; text-align: center; border: 2px solid var(--primary); box-shadow: 0 25px 60px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; }
+        .timer-bar { width: 100%; height: 15px; background: #0f172a; border-radius: 10px; overflow: hidden; margin: 25px 0; border: 1px solid #334155;}
         .timer-progress { width: 100%; height: 100%; background: var(--primary); transition: width 0.1s linear, background-color 0.3s; }
         
-        .btn-answer-outline { background: rgba(30, 41, 59, 0.6); color: #e2e8f0; border: 2px solid #64748b; padding: 15px 40px; font-size: 1.1rem; font-weight: 800; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; margin-top: 25px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .btn-answer-outline { background: rgba(30, 41, 59, 0.6); color: #e2e8f0; border: 2px solid #64748b; padding: 15px 40px; font-size: 1.1rem; font-weight: 800; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; margin-top: 20px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .btn-answer-outline:hover { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); transform: translateY(-2px); }
+
+        /* KOTAK JAWABAN MINIMALIS: Teks Jawaban Tepat di Tengah Border */
+        #answer-section {
+            margin-top: 28px;
+            padding-top: 28px;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            animation: fadeInAnswer 0.3s ease-out forwards;
+        }
+        @keyframes fadeInAnswer {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .answer-showcase-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(15, 23, 42, 0.85) 100%);
+            border: 2px solid rgba(16, 185, 129, 0.55);
+            border-radius: 18px;
+            padding: 24px 35px;
+            min-height: 92px;
+            margin-bottom: 26px;
+            width: 100%;
+            max-width: 640px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        #modal-answer-big {
+            color: #ffffff;
+            font-size: 2.3rem;
+            font-weight: 900;
+            line-height: 1.3;
+            margin: 0;
+            text-align: center;
+            text-shadow: 0 2px 12px rgba(16, 185, 129, 0.4);
+            word-break: break-word;
+        }
+        .answer-actions-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        .btn-judge {
+            min-width: 155px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 1.05rem;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            color: white;
+        }
+        .btn-judge:hover { transform: translateY(-2px); }
+        .btn-judge-correct { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+        .btn-judge-correct:hover { box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6); }
+        .btn-judge-wrong { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); }
+        .btn-judge-wrong:hover { box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6); }
+        .btn-judge-exit { background: #334155; color: #e2e8f0; border: 1.5px solid #475569; }
+        .btn-judge-exit:hover { background: #475569; color: white; }
 
         .btn-quit-cancel { background: transparent; border: 2px solid #64748b; color: #cbd5e1; padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1.1rem;}
         .btn-quit-cancel:hover { background: #334155; color: white; border-color: #94a3b8; }
@@ -143,7 +281,6 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
         .scoreboard-grid::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         .scoreboard-grid::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-        /* Form Login Modal Styling */
         .login-input { width: 100%; padding: 15px; margin-bottom: 18px; border-radius: 12px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1.05rem; outline: none; transition: 0.2s; }
         .login-input:focus { border-color: var(--primary); }
     </style>
@@ -169,18 +306,21 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
     <audio id="audio-wrong" src="assets/audio/wrong.mp3"></audio>
 
     <nav class="top-navbar">
-        <h2 onclick="confirmGoHome()"><?= htmlspecialchars($judul_game) ?></h2>
+        <div class="brand-home-logo" onclick="confirmGoHome()" title="Kembali ke Beranda Utama">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 10.5L12 3l9 7.5v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9z"/>
+                <path d="M9 21V13h6v8"/>
+            </svg>
+        </div>
+
         <div class="nav-buttons">
-            <!-- KONTROL VOLUME TUNGGAL (IKON + SLIDER) -->
             <div class="volume-control" title="Atur Volume Suara">
                 <button type="button" class="btn-vol-icon" id="btn-mute-icon" onclick="toggleAudio()">🔊</button>
                 <input type="range" id="vol-master" min="0" max="1" step="0.05" value="0.7" oninput="updateMasterVolume(this.value)">
             </div>
             
-            <!-- TOMBOL LAYAR PENUH HANYA SIMBOL -->
             <button type="button" class="btn-icon-nav" onclick="toggleFullScreen()" id="btn-fullscreen" title="Layar Penuh / Minimize">⛶</button>
             
-            <!-- TOMBOL LOGIN -->
             <?php if ($is_admin): ?>
                 <a href="admin.php" class="btn-admin" id="btn-login-nav">Panel Admin</a>
             <?php else: ?>
@@ -234,13 +374,13 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
     </section>
 
     <section id="podium" class="screen-section hidden">
-        <div style="text-align:center; padding-top: 30px;">
-            <h1 class="podium-title">🏆 SANG <span>JUARA</span> 🏆</h1>
-            <div id="podium-stand" style="display:flex; justify-content:center; align-items:flex-end; gap:25px; height: 380px;"></div>
-            <div id="other-ranks-container" class="hidden" style="margin-top: 60px;">
+        <div style="text-align:center; padding-top: 10px;">
+            <h1 class="podium-title">🏆 KLASEMEN <span>AKHIR</span> 🏆</h1>
+            <div id="podium-stand"></div>
+            <div id="other-ranks-container" class="hidden" style="margin-top: 50px;">
                 <div id="other-ranks" style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;"></div>
             </div>
-            <button class="btn-play-massive" onclick="location.reload()" style="margin-top: 60px; font-size:1.2rem; padding:15px 40px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);">MAIN LAGI</button>
+            <button class="btn-play-massive" onclick="location.reload()" style="margin-top: 50px; font-size:1.2rem; padding:15px 40px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);">MAIN LAGI</button>
         </div>
     </section>
 
@@ -269,10 +409,10 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
     </div>
 
     <div id="question-modal" class="q-modal-layout hidden">
-        <div class="q-modal-content">
+        <div class="q-modal-content" id="question-modal-box">
             <h2 id="modal-category" style="color:#94a3b8; font-size:1.2rem; margin-bottom: 10px; text-transform:uppercase; letter-spacing:2px;">Kategori</h2>
             <h1 id="modal-points" style="color: var(--accent); font-size: 4rem; line-height:1; margin-bottom: 25px; text-shadow: 0 0 20px rgba(251,191,36,0.4);">100</h1>
-            <p id="modal-question" style="font-size: 2rem; color: white; margin-bottom: 35px; font-weight: 800; line-height:1.4;"></p>
+            <p id="modal-question" style="font-size: 2rem; color: white; margin-bottom: 30px; font-weight: 800; line-height:1.4;"></p>
             
             <img id="modal-image" src="" alt="Visual" class="hidden" style="max-width:100%; max-height:300px; border-radius:15px; margin-bottom:25px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
             <div id="audio-container" class="hidden" style="margin-bottom: 25px; width: 100%;">
@@ -286,14 +426,17 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
                 <button id="btn-resume" onclick="resumeTimer()" class="hidden" style="background:var(--primary); color:white; padding:12px 25px; border:none; border-radius:10px; font-weight:900; cursor:pointer;">LANJUT WAKTU</button>
             </div>
 
-            <button class="btn-answer-outline" onclick="revealAnswer()">TAMPILKAN JAWABAN</button>
+            <button id="btn-reveal-answer" class="btn-answer-outline" onclick="revealAnswer()">TAMPILKAN JAWABAN</button>
 
-            <div id="answer-section" class="hidden" style="margin-top: 35px; padding-top:30px; border-top:2px dashed #475569;">
-                <h3 style="color:var(--success); font-size:2.2rem; margin-bottom:25px; font-weight:900;" id="modal-answer-big">Jawaban</h3>
-                <div style="display:flex; justify-content:center; gap:20px;">
-                    <button onclick="showTeamSelector('benar')" style="background:var(--success); color:white; padding:15px 30px; border:none; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1.1rem; box-shadow: 0 5px 15px rgba(16,185,129,0.4);">✓ BENAR</button>
-                    <button onclick="showTeamSelector('salah')" style="background:var(--wrong); color:white; padding:15px 30px; border:none; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1.1rem; box-shadow: 0 5px 15px rgba(239,68,68,0.4);">✗ SALAH</button>
-                    <button onclick="manualCloseQuestion()" style="background:#64748b; color:white; padding:15px 25px; border:none; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1.1rem;">Keluar</button>
+            <!-- TAMPILAN JAWABAN SIMPEL & PRESISI DI TENGAH BORDER -->
+            <div id="answer-section" class="hidden">
+                <div class="answer-showcase-box">
+                    <h3 id="modal-answer-big">Jawaban</h3>
+                </div>
+                <div class="answer-actions-row">
+                    <button onclick="showTeamSelector('benar')" class="btn-judge btn-judge-correct">✓ Benar</button>
+                    <button onclick="showTeamSelector('salah')" class="btn-judge btn-judge-wrong">✗ Salah</button>
+                    <button onclick="manualCloseQuestion()" class="btn-judge btn-judge-exit">Keluar</button>
                 </div>
             </div>
         </div>
@@ -323,6 +466,10 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
         </div>
     </div>
 
+    <script src="script.js?v=<?= time(); ?>"></script>
+    <script>
+        const APP_CONFIG = <?= json_encode($config); ?>;
+    </script>
     <script src="script.js?v=<?= time(); ?>"></script>
 </body>
 </html>

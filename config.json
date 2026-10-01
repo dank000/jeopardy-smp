@@ -1,1 +1,7 @@
-{"admin_title":"Studio Kuis","game_title":"Jeopardy Edukasi"}
+{
+    "admin_title": "Studio Kuis",
+    "game_title": "Jeopardy Edukasi",
+    "penalti_salah": "ya",
+    "default_cat_count": 5,
+    "default_waktu_soal": 30
+}
