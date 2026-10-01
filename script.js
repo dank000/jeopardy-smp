@@ -26,43 +26,109 @@ let isGameActive = false;
 let currentWinningTeamIndex = null;
 
 // ==========================================
-// SISTEM AUDIO (BGM & SFX)
+// SISTEM MANAJEMEN AUDIO TERPADU (MASTER VOLUME)
 // ==========================================
 let audioEnabled = true;
+let masterVol = 0.7; // Nilai awal slider (0.0 - 1.0)
+let lastActiveVol = 0.7; // Menyimpan nilai volume sebelum di-mute
+let currentBGMType = "lobby";
+let isTimerDucking = false;
 
-// Mendaftarkan klik SFX ke seluruh elemen interaktif
+// Rasio keseimbangan otomatis agar BGM tidak menenggelamkan SFX
+function getBgmVolume() {
+  if (!audioEnabled || masterVol === 0) return 0;
+  let baseBgm = masterVol * 0.45; // BGM disetel lebih lembut dari SFX
+  return isTimerDucking ? baseBgm * 0.15 : baseBgm;
+}
+
+function getSfxVolume() {
+  if (!audioEnabled || masterVol === 0) return 0;
+  return masterVol;
+}
+
+// Buka kunci autoplay begitu pengguna menyentuh/mengklik bagian mana pun di layar
+function unlockAudioOnFirstInteraction() {
+  if (audioEnabled) {
+    let activeBgm = document.getElementById(`bgm-${currentBGMType}`);
+    if (activeBgm && activeBgm.paused) {
+      activeBgm.volume = getBgmVolume();
+      activeBgm.play().catch(() => {});
+    }
+  }
+}
+document.addEventListener("pointerdown", unlockAudioOnFirstInteraction, {
+  passive: true,
+});
+document.addEventListener("keydown", unlockAudioOnFirstInteraction, {
+  passive: true,
+});
+
+// Bunyi klik otomatis untuk semua elemen interaktif
 document.addEventListener("click", (e) => {
   if (
     e.target.tagName === "BUTTON" ||
     e.target.closest(".card") ||
-    e.target.closest(".cat-checkbox")
+    e.target.closest(".cat-checkbox") ||
+    e.target.closest(".team-edit-btn") ||
+    e.target.closest(".avatar-option")
   ) {
     playSFX("click");
   }
 });
 
-function toggleAudio() {
-  audioEnabled = !audioEnabled;
-  const btn = document.getElementById("btn-audio");
-  if (audioEnabled) {
-    btn.innerText = "🔊 Musik ON";
-    if (
-      document.getElementById("home-screen").classList.contains("active") ||
-      document.getElementById("lobby").classList.contains("active")
-    ) {
-      playBGM("lobby");
-    } else if (document.getElementById("game").classList.contains("active")) {
-      playBGM("game");
-    }
-  } else {
-    btn.innerText = "🔇 Musik OFF";
+function updateMasterVolume(val) {
+  masterVol = parseFloat(val);
+  const muteBtn = document.getElementById("btn-mute-icon");
+
+  if (masterVol === 0) {
+    audioEnabled = false;
+    muteBtn.innerText = "🔇";
     stopAllBGM();
     stopSFX("tick");
+  } else {
+    lastActiveVol = masterVol;
+    if (!audioEnabled) {
+      audioEnabled = true;
+      playBGM(currentBGMType);
+    }
+    muteBtn.innerText = masterVol < 0.4 ? "🔉" : "🔊";
+    applyCurrentVolumes();
+  }
+}
+
+function applyCurrentVolumes() {
+  ["bgm-lobby", "bgm-game", "bgm-podium"].forEach((id) => {
+    const aud = document.getElementById(id);
+    if (aud) aud.volume = getBgmVolume();
+  });
+  const tick = document.getElementById("sfx-tick");
+  if (tick) tick.volume = getSfxVolume();
+}
+
+function toggleAudio() {
+  const slider = document.getElementById("vol-master");
+  const muteBtn = document.getElementById("btn-mute-icon");
+
+  if (audioEnabled && masterVol > 0) {
+    lastActiveVol = masterVol;
+    masterVol = 0;
+    audioEnabled = false;
+    slider.value = 0;
+    muteBtn.innerText = "🔇";
+    stopAllBGM();
+    stopSFX("tick");
+  } else {
+    masterVol = lastActiveVol > 0 ? lastActiveVol : 0.7;
+    audioEnabled = true;
+    slider.value = masterVol;
+    muteBtn.innerText = masterVol < 0.4 ? "🔉" : "🔊";
+    applyCurrentVolumes();
+    playBGM(currentBGMType);
   }
 }
 
 function playSFX(type) {
-  if (!audioEnabled) return;
+  if (!audioEnabled || masterVol === 0) return;
   try {
     let aud;
     switch (type) {
@@ -76,8 +142,10 @@ function playSFX(type) {
         aud = document.getElementById("sfx-card");
         break;
       case "tick":
-        document.getElementById("sfx-tick").play();
-        return; // Loop timer
+        const t = document.getElementById("sfx-tick");
+        t.volume = getSfxVolume();
+        t.play().catch(() => {});
+        return;
       case "reveal":
         aud = document.getElementById("sfx-reveal");
         break;
@@ -89,8 +157,9 @@ function playSFX(type) {
         break;
     }
     if (aud) {
+      aud.volume = getSfxVolume();
       aud.currentTime = 0;
-      aud.play().catch((e) => console.log("Audio play di-block browser"));
+      aud.play().catch(() => {});
     }
   } catch (e) {}
 }
@@ -106,28 +175,36 @@ function stopSFX(type) {
 }
 
 function playBGM(type) {
-  if (!audioEnabled) return;
+  currentBGMType = type;
+  if (!audioEnabled || masterVol === 0) return;
   stopAllBGM();
   try {
-    let bgm;
-    if (type === "lobby") bgm = document.getElementById("bgm-lobby");
-    if (type === "game") bgm = document.getElementById("bgm-game");
-    if (type === "podium") bgm = document.getElementById("bgm-podium");
+    let bgm = document.getElementById(`bgm-${type}`);
     if (bgm) {
-      bgm.volume = 0.5;
-      bgm.play().catch((e) => console.log("BGM autoplay tertahan"));
+      bgm.volume = getBgmVolume();
+      bgm.play().catch(() => {});
     }
   } catch (e) {}
 }
 
 function stopAllBGM() {
   try {
-    document.getElementById("bgm-lobby").pause();
-    document.getElementById("bgm-game").pause();
-    document.getElementById("bgm-podium").pause();
+    ["bgm-lobby", "bgm-game", "bgm-podium"].forEach((id) => {
+      const aud = document.getElementById(id);
+      if (aud) aud.pause();
+    });
   } catch (e) {}
 }
 // ==========================================
+
+// MODAL LOGIN
+function openLoginModal() {
+  document.getElementById("login-modal").classList.remove("hidden");
+}
+
+function closeLoginModal() {
+  document.getElementById("login-modal").classList.add("hidden");
+}
 
 async function fetchDatabaseSoal() {
   try {
@@ -175,7 +252,7 @@ function masukLobi() {
   document.getElementById("lobby").classList.add("active");
 
   playSFX("transition");
-  playBGM("lobby"); // BGM mulai ketika user sudah berinteraksi
+  playBGM("lobby");
 
   const btnLogin = document.getElementById("btn-login-nav");
   if (btnLogin) btnLogin.classList.add("hidden");
@@ -202,6 +279,9 @@ function initLobby() {
   renderCategoryCheckboxes();
   renderTeamLobby();
   renderAvatarOptions();
+
+  document.getElementById("vol-master").value = masterVol;
+  playBGM("lobby"); // Coba nyalakan sejak awal jika browser mengizinkan
 }
 
 function renderCategoryCheckboxes() {
@@ -338,7 +418,7 @@ function startGame() {
   }
 
   playSFX("transition");
-  playBGM("game"); // Pindah ke musik game yang asik
+  playBGM("game");
 
   document.getElementById("lobby").classList.remove("active");
   document.getElementById("lobby").classList.add("hidden");
@@ -378,7 +458,7 @@ const playerAudio = document.getElementById("modal-audio-player");
 function openQuestion(category, qData, cardId, cardEl) {
   let isAlreadyOpened = openedQuestions.includes(cardId);
 
-  playSFX("card"); // Bunyi kartu ditekan
+  if (!isAlreadyOpened) playSFX("card");
 
   currentQuestionData = { qData, cardId };
   activeCardElement = cardEl;
@@ -433,7 +513,9 @@ function startTimer(seconds) {
   timerBar.style.width = "100%";
   timerBar.style.backgroundColor = "var(--primary)";
 
-  playSFX("tick"); // Memulai suara tik-tok
+  isTimerDucking = true;
+  applyCurrentVolumes();
+  playSFX("tick");
 
   timerInterval = setInterval(() => {
     if (!isPaused) {
@@ -444,7 +526,7 @@ function startTimer(seconds) {
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         stopSFX("tick");
-        playSFX("wrong"); // Alarm waktu habis
+        playSFX("wrong");
         pauseTimer();
       }
     }
@@ -457,7 +539,10 @@ function pauseTimer() {
   document.getElementById("btn-pause").classList.add("hidden");
   document.getElementById("btn-resume").classList.remove("hidden");
   if (!playerAudio.paused) playerAudio.pause();
-  stopSFX("tick"); // Jeda waktu = Jeda detak
+  stopSFX("tick");
+
+  isTimerDucking = false;
+  applyCurrentVolumes();
 }
 
 function resumeTimer() {
@@ -468,16 +553,22 @@ function resumeTimer() {
       : "var(--wrong)";
   document.getElementById("btn-resume").classList.add("hidden");
   document.getElementById("btn-pause").classList.remove("hidden");
-  playSFX("tick"); // Lanjut waktu = Lanjut detak
+  playSFX("tick");
+
+  isTimerDucking = true;
+  applyCurrentVolumes();
 }
 
 function revealAnswer() {
-  playSFX("reveal"); // Suara jawaban terbuka
+  playSFX("reveal");
   document.getElementById("answer-section").classList.remove("hidden");
   clearInterval(timerInterval);
   isPaused = true;
-  stopSFX("tick"); // Otomatis matikan detak waktu
+  stopSFX("tick");
   if (!playerAudio.paused) playerAudio.pause();
+
+  isTimerDucking = false;
+  applyCurrentVolumes();
 
   document.getElementById("btn-pause").classList.add("hidden");
   document.getElementById("btn-resume").classList.add("hidden");
@@ -537,6 +628,8 @@ function closeQuestion(hasWinner, winningTeamIndex = null) {
   stopSFX("tick");
   playerAudio.pause();
   playerAudio.src = "";
+  isTimerDucking = false;
+  applyCurrentVolumes();
 
   if (!openedQuestions.includes(currentQuestionData.cardId)) {
     openedQuestions.push(currentQuestionData.cardId);
@@ -597,9 +690,8 @@ function adjustScore(teamIdx, amount) {
 
 function showPodium() {
   isGameActive = false;
-
   playSFX("transition");
-  playBGM("podium"); // BGM Musik Kemenangan
+  playBGM("podium");
 
   document.getElementById("game").classList.remove("active");
   document.getElementById("game").classList.add("hidden");
@@ -661,7 +753,9 @@ function createRankElement(teamData, rank, isFirst = false) {
   return `<div style="display:flex; flex-direction:column; align-items:center; width:180px; z-index:10;">${crownHTML}<img src="${teamData.avatar}" style="width:100px; height:100px; border-radius:50%; border:5px solid ${color}; margin-bottom:15px; z-index:5; background:#fff; box-shadow: 0 10px 20px rgba(0,0,0,0.5);"><h3 style="color:white; margin-bottom:10px; font-size:1.3rem; text-align:center;">${teamData.nama}</h3><h2 style="color:${color}; margin-bottom:20px; font-size:2rem; text-shadow: 0 0 10px rgba(0,0,0,0.5);">${teamData.skor}</h2><div style="background:linear-gradient(180deg, ${color}, #0f172a); width:100%; height:${height}; border-radius:15px 15px 0 0; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:inset 0 10px 30px rgba(0,0,0,0.3); border: 2px solid ${color}; border-bottom:none;"><span style="font-size:3.5rem; filter:drop-shadow(0 5px 5px rgba(0,0,0,0.5));">${piala}</span><span style="color:#0f172a; font-size:2rem; font-weight:900;">#${rank}</span></div></div>`;
 }
 
+// PERBAIKAN: Hanya menampilkan simbol tanpa teks
 function toggleFullScreen() {
+  const btn = document.getElementById("btn-fullscreen");
   if (!document.fullscreenElement) {
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen();
@@ -670,7 +764,7 @@ function toggleFullScreen() {
     } else if (document.documentElement.msRequestFullscreen) {
       document.documentElement.msRequestFullscreen();
     }
-    document.getElementById("btn-fullscreen").innerText = "🗗 Keluar Penuh";
+    btn.innerText = "🗗";
   } else {
     if (document.exitFullscreen) {
       document.exitFullscreen();
@@ -679,7 +773,7 @@ function toggleFullScreen() {
     } else if (document.msExitFullscreen) {
       document.msExitFullscreen();
     }
-    document.getElementById("btn-fullscreen").innerText = "⛶ Layar Penuh";
+    btn.innerText = "⛶";
   }
 }
 

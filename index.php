@@ -1,7 +1,9 @@
 <?php
+session_start();
 $config_file = 'config.json';
 $config = file_exists($config_file) ? json_decode(file_get_contents($config_file), true) : ['game_title' => 'Jeopardy Edukasi'];
 $judul_game = $config['game_title'];
+$is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -21,11 +23,26 @@ $judul_game = $config['game_title'];
         .top-navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #334155; position: fixed; width: 100%; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .top-navbar h2 { font-size: 1.6rem; font-weight: 900; color: white; letter-spacing: 1px; cursor: pointer; transition: 0.2s; }
         .top-navbar h2:hover { opacity: 0.8; transform: scale(1.02); }
-        .nav-buttons { display: flex; align-items: center; gap: 15px; }
-        .btn-admin { background: transparent; border: 2px solid #475569; color: #cbd5e1; padding: 8px 20px; border-radius: 8px; font-weight: bold; text-decoration: none; transition: 0.3s; }
+        .nav-buttons { display: flex; align-items: center; gap: 12px; }
+        
+        .btn-admin { background: transparent; border: 2px solid #475569; color: #cbd5e1; padding: 8px 20px; border-radius: 10px; font-weight: bold; text-decoration: none; cursor: pointer; font-size: 0.95rem; transition: 0.3s; }
         .btn-admin:hover { border-color: var(--primary); color: white; background: rgba(59, 130, 246, 0.2); }
-        .btn-fullscreen { background: transparent; border: 2px solid var(--accent); color: var(--accent); padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-fullscreen:hover { background: var(--accent); color: #0f172a; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+        
+        /* PERBAIKAN: Tombol Layar Penuh Hanya Simbol Ikon */
+        .btn-icon-nav { background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; color: var(--accent); width: 42px; height: 42px; border-radius: 10px; font-size: 1.25rem; font-weight: bold; cursor: pointer; transition: 0.25s; display: flex; align-items: center; justify-content: center; line-height: 1; }
+        .btn-icon-nav:hover { background: var(--accent); color: #0f172a; border-color: var(--accent); box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+
+        /* PERBAIKAN: Kontrol Volume Tunggal Modern */
+        .volume-control { display: flex; align-items: center; gap: 10px; background: rgba(30, 41, 59, 0.7); padding: 6px 14px; border-radius: 10px; border: 1px solid #334155; height: 42px; }
+        .btn-vol-icon { background: transparent; border: none; color: white; font-size: 1.15rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px; transition: 0.2s; line-height: 1; }
+        .btn-vol-icon:hover { transform: scale(1.15); color: var(--accent); }
+        .volume-control input[type=range] { width: 85px; accent-color: var(--accent); cursor: pointer; height: 6px; border-radius: 5px; outline: none; }
+
+        /* Animasi Klik Interaktif */
+        button:active, .cat-checkbox:active, .card:active, .team-edit-btn:active, .btn-acak-kat:active, .btn-play-massive:active { 
+            transform: scale(0.95) !important; 
+            transition: transform 0.1s !important; 
+        }
 
         .screen-section { display: none; padding-top: 90px; min-height: 100vh; width: 100%; padding-bottom: 50px; }
         .screen-section.active { display: block; }
@@ -50,7 +67,6 @@ $judul_game = $config['game_title'];
         .counter-group { display: flex; align-items: center; background: #0f172a; border-radius: 12px; border: 2px solid #334155; padding: 5px; gap: 5px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3); }
         .counter-group .btn-spin { background: #1e293b; color: #cbd5e1; border: none; width: 35px; height: 35px; border-radius: 8px; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; line-height: 1; }
         .counter-group .btn-spin:hover { background: var(--primary); color: white; transform: scale(1.05); }
-        .counter-group .btn-spin:active { transform: scale(0.95); }
         .counter-group input { width: 45px; background: transparent; color: var(--accent); border: none; text-align: center; font-size: 1.4rem; font-weight: 900; outline: none; pointer-events: none; -moz-appearance: textfield; }
         .counter-group input::-webkit-outer-spin-button, .counter-group input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         
@@ -75,29 +91,29 @@ $judul_game = $config['game_title'];
 
         #game { background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px); background-size: 50px 50px; }
         .board { display: grid; gap: 15px; padding: 20px 40px; width: 100%; max-width: 100%; margin-bottom: 50px; }
-        .category-header { background: linear-gradient(180deg, var(--primary), #2563eb); color: white; font-weight: 900; text-align: center; padding: 15px 10px; border-radius: 12px; font-size: 1.1rem; box-shadow: 0 6px 15px rgba(0,0,0,0.4); text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* PERBAIKAN: Judul Kategori Rata Tengah Vertikal & Horizontal meski panjang */
+        .category-header { 
+            background: linear-gradient(180deg, var(--primary), #2563eb); 
+            color: white; 
+            font-weight: 900; 
+            text-align: center; 
+            padding: 12px 15px; 
+            border-radius: 12px; 
+            font-size: 1.1rem; 
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4); 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 75px;
+            line-height: 1.3;
+        }
+        
         .card { background: linear-gradient(135deg, #1e293b, #0f172a); color: var(--accent); font-size: 2.8rem; font-weight: 900; display: flex; align-items: center; justify-content: center; height: 110px; border-radius: 12px; cursor: pointer; border: 2px solid #334155; transition: 0.2s; box-shadow: 0 8px 20px rgba(0,0,0,0.4); text-shadow: 2px 2px 5px rgba(0,0,0,0.8); }
         .card:hover { transform: scale(1.03); border-color: var(--accent); box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); z-index: 10; }
-        .card.disabled { background: transparent; color: transparent; border-color: #1e293b; cursor: default; box-shadow: none; pointer-events: none; }
-
-        .scoreboard-wrapper { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .scoreboard-wrapper.hidden-score { transform: translateY(100%); }
-        .btn-toggle-score { background: var(--bg-panel); color: #cbd5e1; border: 2px solid #334155; border-bottom: none; border-radius: 10px 10px 0 0; padding: 5px 20px; cursor: pointer; font-size: 1.2rem; margin-bottom: -2px; z-index: 101; transition: 0.2s; }
-        .btn-toggle-score:hover { color: white; background: #334155; }
-        .scoreboard-wrapper.hidden-score .btn-toggle-score { transform: translateY(-100%); border-bottom: 2px solid #334155; border-radius: 10px; padding: 8px 20px; background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(5px); }
-        .scoreboard-wrapper.hidden-score .btn-toggle-score::after { content: " Tampilkan Skor"; font-size: 0.9rem; font-weight: bold; }
-
-        .scoreboard-container { display: flex; justify-content: center; gap: 20px; padding: 20px; background: linear-gradient(0deg, rgba(15,23,42,1) 0%, rgba(15,23,42,0.9) 100%); width: 100%; border-top: 1px solid #334155; backdrop-filter: blur(10px); flex-wrap: nowrap; overflow-x: auto; max-height: 130px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .scoreboard-wrapper:not(.hidden-score):hover .scoreboard-container { flex-wrap: wrap; max-height: 85vh; overflow-y: auto; overflow-x: hidden; background: rgba(15,23,42,0.98); align-content: flex-start; padding: 40px; box-shadow: 0 -10px 50px rgba(0,0,0,0.6); border-top: 2px solid var(--primary); }
-        .scoreboard-container::-webkit-scrollbar { height: 8px; width: 8px; }
-        .scoreboard-container::-webkit-scrollbar-track { background: transparent; }
-        .scoreboard-container::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        .scoreboard-container::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-
-        .score-card { pointer-events: auto; background: var(--bg-panel); padding: 12px 20px; border-radius: 15px; border: 2px solid #334155; display: flex; align-items: center; gap: 15px; flex: 1; min-width: 250px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: 0.3s; }
-        .score-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
-        .score-card img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #475569; }
-        .scoreboard-wrapper:not(.hidden-score):hover .score-card { flex: 1 1 300px; max-width: 400px; }
+        .card.disabled { background: transparent; color: transparent; border-color: #1e293b; box-shadow: none; }
 
         .podium-title { font-size: 5rem; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 0 30px rgba(251, 191, 36, 0.6); margin-bottom: 70px; } 
         .podium-title span { color: var(--accent); }
@@ -126,6 +142,10 @@ $judul_game = $config['game_title'];
         .scoreboard-grid::-webkit-scrollbar-track { background: transparent; }
         .scoreboard-grid::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         .scoreboard-grid::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        /* Form Login Modal Styling */
+        .login-input { width: 100%; padding: 15px; margin-bottom: 18px; border-radius: 12px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1.05rem; outline: none; transition: 0.2s; }
+        .login-input:focus { border-color: var(--primary); }
     </style>
 </head>
 <body>
@@ -151,9 +171,21 @@ $judul_game = $config['game_title'];
     <nav class="top-navbar">
         <h2 onclick="confirmGoHome()"><?= htmlspecialchars($judul_game) ?></h2>
         <div class="nav-buttons">
-            <button class="btn-fullscreen" onclick="toggleAudio()" id="btn-audio">🔊 Musik ON</button>
-            <button class="btn-fullscreen" onclick="toggleFullScreen()" id="btn-fullscreen">⛶ Layar Penuh</button>
-            <a href="admin.php" class="btn-admin" id="btn-login-nav">Login</a>
+            <!-- KONTROL VOLUME TUNGGAL (IKON + SLIDER) -->
+            <div class="volume-control" title="Atur Volume Suara">
+                <button type="button" class="btn-vol-icon" id="btn-mute-icon" onclick="toggleAudio()">🔊</button>
+                <input type="range" id="vol-master" min="0" max="1" step="0.05" value="0.7" oninput="updateMasterVolume(this.value)">
+            </div>
+            
+            <!-- TOMBOL LAYAR PENUH HANYA SIMBOL -->
+            <button type="button" class="btn-icon-nav" onclick="toggleFullScreen()" id="btn-fullscreen" title="Layar Penuh / Minimize">⛶</button>
+            
+            <!-- TOMBOL LOGIN -->
+            <?php if ($is_admin): ?>
+                <a href="admin.php" class="btn-admin" id="btn-login-nav">Panel Admin</a>
+            <?php else: ?>
+                <button type="button" class="btn-admin" id="btn-login-nav" onclick="openLoginModal()">Login</button>
+            <?php endif; ?>
         </div>
     </nav>
 
@@ -211,6 +243,22 @@ $judul_game = $config['game_title'];
             <button class="btn-play-massive" onclick="location.reload()" style="margin-top: 60px; font-size:1.2rem; padding:15px 40px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);">MAIN LAGI</button>
         </div>
     </section>
+
+    <!-- MODAL LOGIN -->
+    <div id="login-modal" class="q-modal-layout hidden" style="z-index: 2600;">
+        <div class="q-modal-content" style="max-width: 420px; padding: 40px;">
+            <h2 style="color: white; margin-bottom: 10px; font-size: 1.9rem; font-weight: 900;">Masuk Akun</h2>
+            <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 25px;">Silakan masuk untuk mengelola kuis dan pengaturan.</p>
+            <form action="proses_login.php" method="POST">
+                <input type="text" name="username" class="login-input" placeholder="Username" required autocomplete="off">
+                <input type="password" name="password" class="login-input" placeholder="Password" required>
+                <div style="display: flex; gap: 12px; margin-top: 10px;">
+                    <button type="button" onclick="closeLoginModal()" class="btn-quit-cancel" style="flex: 1;">Batal</button>
+                    <button type="submit" style="flex: 1; background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div id="scoreboard-modal" class="q-modal-layout hidden" style="z-index: 2500;">
         <div class="q-modal-content" style="max-width: 1000px; padding: 40px; background: rgba(15, 23, 42, 0.98); border-color: var(--accent);">
