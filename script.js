@@ -548,7 +548,12 @@ function openQuestion(category, qData, cardId, cardEl) {
   const audioContainer = document.getElementById("audio-container");
   if (qData.audio && qData.audio !== "") {
     playerAudio.src = qData.audio;
-    audioContainer.classList.remove("hidden");
+    // Jika kategori Tebak Lirik, sembunyikan dulu saat pertanyaan; selain itu tampilkan
+    if (category.toLowerCase().includes("lirik")) {
+      audioContainer.classList.add("hidden");
+    } else {
+      audioContainer.classList.remove("hidden");
+    }
   } else {
     playerAudio.src = "";
     audioContainer.classList.add("hidden");
