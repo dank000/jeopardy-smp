@@ -1,0 +1,8 @@
+# Abaikan semua file MP3 dan gambar soal agar tidak masuk ke GitHub
+assets/audio/*.mp3
+assets/images/*
+
+# Opsional: Jika tetap ingin menyertakan efek suara bawaan (SFX), tambahkan tanda seru (!)
+!assets/audio/sfx_*.mp3
+!assets/audio/correct.mp3
+!assets/audio/wrong.mp3
