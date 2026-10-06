@@ -466,7 +466,6 @@ $is_admin = (isset($_SESSION['role']) && $_SESSION['role'] == 'admin');
         </div>
     </div>
 
-    <script src="script.js?v=<?= time(); ?>"></script>
     <script>
         const APP_CONFIG = <?= json_encode($config); ?>;
     </script>
